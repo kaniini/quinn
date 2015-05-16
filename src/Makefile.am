@@ -1,7 +1,7 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -DSYSCONFDIR=\"$(sysconfdir)\"
 
-bin_PROGRAMS = 	nano
-nano_SOURCES =	browser.c \
+bin_PROGRAMS = 	quinn
+quinn_SOURCES =	browser.c \
 		chars.c \
 		color.c \
 		cut.c \
@@ -19,7 +19,7 @@ nano_SOURCES =	browser.c \
 		utils.c \
 		winio.c 
 
-nano_LDADD = @GLIB_LIBS@ @LIBINTL@
+quinn_LDADD = @GLIB_LIBS@ @LIBINTL@
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && rm -f rnano && $(LN_S) nano rnano
