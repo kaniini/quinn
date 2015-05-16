@@ -797,7 +797,7 @@ void edit_update(update_type location);
 void total_redraw(void);
 void total_refresh(void);
 void display_main_list(void);
-void do_cursorpos(bool constant);
+void do_cursorpos(void);
 void do_cursorpos_void(void);
 void do_replace_highlight(bool highlight, const char *word);
 void xon_complaint(void);

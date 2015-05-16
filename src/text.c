@@ -2208,8 +2208,7 @@ void do_justify(bool full_justify)
 
     /* If constant cursor position display is on, make sure the current
      * cursor position will be properly displayed on the statusbar. */
-    if (ISSET(CONST_UPDATE))
-	do_cursorpos(TRUE);
+    do_cursorpos();
 
     /* Display the shortcut list with UnJustify. */
     uncutfunc->desc = unjust_tag;
@@ -3454,12 +3453,7 @@ void do_verbatim_input(void)
     /* If constant cursor position display is on, make sure the current
      * cursor position will be properly displayed on the statusbar.
      * Otherwise, blank the statusbar. */
-    if (ISSET(CONST_UPDATE))
-	do_cursorpos(TRUE);
-    else {
-	blank_statusbar();
-	wnoutrefresh(bottomwin);
-    }
+    do_cursorpos();
 
     /* Display all the verbatim characters at once, not filtering out
      * control characters. */

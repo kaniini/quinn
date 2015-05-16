@@ -768,9 +768,6 @@ void shortcut_init(void)
 	fulljustify_tag, IFSCHELP(nano_fulljustify_msg), TOGETHER, NOVIEW);
 #endif
 
-    add_to_funcs(do_cursorpos_void, MMAIN,
-	N_("Cur Pos"), IFSCHELP(nano_cursorpos_msg), TOGETHER, VIEW);
-
 #if !defined(NANO_TINY) || defined(DISABLE_COLOR)
     /* Conditionally placing this one here or further on, to keep the
      * help items nicely paired in most conditions. */
@@ -1018,8 +1015,6 @@ void shortcut_init(void)
     add_to_sclist(MMAIN, "F12", do_linter, 0);
 #endif
 #endif
-    add_to_sclist(MMAIN, "^C", do_cursorpos_void, 0);
-    add_to_sclist(MMAIN, "F11", do_cursorpos_void, 0);
     add_to_sclist(MMAIN, "^_", do_gotolinecolumn_void, 0);
     add_to_sclist(MMAIN, "M-G", do_gotolinecolumn_void, 0);
     add_to_sclist(MMAIN, "F13", do_gotolinecolumn_void, 0);
@@ -1321,9 +1316,6 @@ sc *strtosc(char *input)
     else if (!strcasecmp(input, "linter"))
 	s->scfunc = do_linter;
 #endif
-    else if (!strcasecmp(input, "curpos") ||
-	     !strcasecmp(input, "cursorpos"))
-	s->scfunc = do_cursorpos_void;
     else if (!strcasecmp(input, "gotoline"))
 	s->scfunc = do_gotolinecolumn_void;
 #ifndef DISABLE_JUSTIFY

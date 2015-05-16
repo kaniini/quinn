@@ -34,12 +34,6 @@ static int *key_buffer = NULL;
 	 * haven't handled yet at a given point. */
 static size_t key_buffer_len = 0;
 	/* The length of the keystroke buffer. */
-static int statusblank = 0;
-	/* The number of keystrokes left after we call statusbar(),
-	 * before we actually blank the statusbar. */
-static bool disable_cursorpos = FALSE;
-	/* Should we temporarily disable constant cursor position
-	 * display? */
 
 /* Control character compatibility:
  *
@@ -312,11 +306,6 @@ int get_kbinput(WINDOW *win)
      * we get a recognized value or sequence. */
     while ((kbinput = parse_kbinput(win)) == ERR)
 	;
-
-    /* If we read from the edit window, blank the statusbar if we need
-     * to. */
-    if (win == edit)
-	check_statusblank();
 
     return kbinput;
 }
@@ -1281,7 +1270,6 @@ int parse_escape_seq_kbinput(WINDOW *win, int kbinput)
     if (retval == ERR) {
 	if (win == edit) {
 	    statusbar(_("Unknown Command"));
-	    beep();
 	}
     }
 
@@ -1849,6 +1837,7 @@ void blank_edit(void)
 /* Blank the first line of the bottom portion of the window. */
 void blank_statusbar(void)
 {
+    wattron(bottomwin, interface_color_pair[STATUS_BAR].pairnum);
     blank_line(bottomwin, 0, 0, COLS);
 }
 
@@ -1867,16 +1856,6 @@ void blank_bottombars(void)
  * position display is on. */
 void check_statusblank(void)
 {
-    if (statusblank > 0) {
-	statusblank--;
-
-	if (statusblank == 0 && !ISSET(CONST_UPDATE)) {
-	    blank_statusbar();
-	    wnoutrefresh(bottomwin);
-	    reset_cursor();
-	    wnoutrefresh(edit);
-	}
-    }
 }
 
 /* Convert buf into a string that can be displayed on screen.  The
@@ -2149,18 +2128,6 @@ void statusbar(const char *msg, ...)
     wnoutrefresh(edit);
 	/* Leave the cursor at its position in the edit window, not in
 	 * the statusbar. */
-
-    disable_cursorpos = TRUE;
-
-    /* If we're doing quick statusbar blanking, and constant cursor
-     * position display is off, blank the statusbar after only one
-     * keystroke.  Otherwise, blank it after twenty-six keystrokes, as
-     * Pico does. */
-    statusblank =
-#ifndef NANO_TINY
-	ISSET(QUICK_BLANK) && !ISSET(CONST_UPDATE) ? 1 :
-#endif
-	26;
 }
 
 /* Display the shortcut list in s on the last two rows of the bottom
@@ -3166,54 +3133,26 @@ void display_main_list(void)
  * TRUE and disable_cursorpos is TRUE, we also set disable_cursorpos to
  * FALSE, so that we leave the current statusbar alone this time, and
  * display the current cursor position next time. */
-void do_cursorpos(bool constant)
+void do_cursorpos(void)
 {
-    filestruct *f;
-    char c;
-    size_t i, cur_xpt = xplustabs() + 1;
-    size_t cur_lenpt = strlenpt(openfile->current->data) + 1;
-    int linepct, colpct, charpct;
+    int linepct;
 
     assert(openfile->fileage != NULL && openfile->current != NULL);
 
-    f = openfile->current->next;
-    c = openfile->current->data[openfile->current_x];
-
-    openfile->current->next = NULL;
-    openfile->current->data[openfile->current_x] = '\0';
-
-    i = get_totsize(openfile->fileage, openfile->current);
-
-    openfile->current->data[openfile->current_x] = c;
-    openfile->current->next = f;
-
-    if (constant && disable_cursorpos) {
-	disable_cursorpos = FALSE;
-	return;
-    }
-
-    /* Display the current cursor position on the statusbar, and set
-     * disable_cursorpos to FALSE. */
     linepct = 100 * openfile->current->lineno /
 	openfile->filebot->lineno;
-    colpct = 100 * cur_xpt / cur_lenpt;
-    charpct = (openfile->totsize == 0) ? 0 : 100 * i /
-	openfile->totsize;
 
     statusbar(
-	_("line %ld/%ld (%d%%), col %lu/%lu (%d%%), char %lu/%lu (%d%%)"),
+	_("%s: line %ld/%ld (%d%%)."),
+	openfile->filename,
 	(long)openfile->current->lineno,
-	(long)openfile->filebot->lineno, linepct,
-	(unsigned long)cur_xpt, (unsigned long)cur_lenpt, colpct,
-	(unsigned long)i, (unsigned long)openfile->totsize, charpct);
-
-    disable_cursorpos = FALSE;
+	(long)openfile->filebot->lineno, linepct);
 }
 
 /* Unconditionally display the current cursor position. */
 void do_cursorpos_void(void)
 {
-    do_cursorpos(FALSE);
+    do_cursorpos();
 }
 
 void enable_nodelay(void)
