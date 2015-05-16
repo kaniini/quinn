@@ -2111,16 +2111,14 @@ void statusbar(const char *msg, ...)
     if (old_whitespace)
 	SET(WHITESPACE_DISPLAY);
 #endif
-    start_x = (COLS - strlenpt(foo) - 4) / 2;
+    start_x = 0;
 
     wmove(bottomwin, 0, start_x);
     if (interface_color_pair[STATUS_BAR].bright)
 	wattron(bottomwin, A_BOLD);
     wattron(bottomwin, interface_color_pair[STATUS_BAR].pairnum);
-    waddstr(bottomwin, "[ ");
     waddstr(bottomwin, foo);
     free(foo);
-    waddstr(bottomwin, " ]");
     wattroff(bottomwin, A_BOLD);
     wattroff(bottomwin, interface_color_pair[STATUS_BAR].pairnum);
     wnoutrefresh(bottomwin);
