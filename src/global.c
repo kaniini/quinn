@@ -61,10 +61,6 @@ char *last_replace = NULL;
 
 unsigned flags[4] = {0, 0, 0, 0};
 	/* Our flag containing the states of all global options. */
-WINDOW *topwin;
-	/* The top portion of the window, where we display the version
-	 * number of nano, the name of the current file, and whether the
-	 * current file has been modified. */
 WINDOW *edit;
 	/* The middle portion of the window, i.e. the edit window, where
 	 * we display the current file we're editing. */
@@ -1568,7 +1564,6 @@ int strtomenu(char *input)
  * function unless debugging is turned on. */
 void thanks_for_all_the_fish(void)
 {
-    delwin(topwin);
     delwin(edit);
     delwin(bottomwin);
 

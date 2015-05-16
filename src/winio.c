@@ -1828,15 +1828,12 @@ void blank_line(WINDOW *win, int y, int x, int n)
 /* Blank the first line of the top portion of the window. */
 void blank_titlebar(void)
 {
-    blank_line(topwin, 0, 0, COLS);
 }
 
 /* If the MORE_SPACE flag isn't set, blank the second line of the top
  * portion of the window. */
 void blank_topbar(void)
 {
-    if (!ISSET(MORE_SPACE))
-	blank_line(topwin, 1, 0, COLS);
 }
 
 /* Blank all the lines of the middle portion of the window, i.e. the
@@ -2071,178 +2068,8 @@ char *display_string(const char *buf, size_t start_col, size_t len, bool
     return converted;
 }
 
-/* If path is NULL, we're in normal editing mode, so display the current
- * version of nano, the current filename, and whether the current file
- * has been modified on the titlebar.  If path isn't NULL, we're in the
- * file browser, and path contains the directory to start the file
- * browser in, so display the current version of nano and the contents
- * of path on the titlebar. */
 void titlebar(const char *path)
 {
-    int space = COLS;
-	/* The space we have available for display. */
-    size_t verlen = strlenpt(PACKAGE_STRING) + 1;
-	/* The length of the version message in columns, plus one for
-	 * padding. */
-    const char *prefix;
-	/* "DIR:", "File:", or "New Buffer".  Goes before filename. */
-    size_t prefixlen;
-	/* The length of the prefix in columns, plus one for padding. */
-    const char *state;
-	/* "Modified", "View", or "".  Shows the state of this
-	 * buffer. */
-    size_t statelen = 0;
-	/* The length of the state in columns, or the length of
-	 * "Modified" if the state is blank and we're not in the file
-	 * browser. */
-    char *exppath = NULL;
-	/* The filename, expanded for display. */
-    bool newfie = FALSE;
-	/* Do we say "New Buffer"? */
-    bool dots = FALSE;
-	/* Do we put an ellipsis before the path? */
-
-    assert(path != NULL || openfile->filename != NULL);
-
-    if (interface_color_pair[TITLE_BAR].bright)
-	wattron(topwin, A_BOLD);
-    wattron(topwin, interface_color_pair[TITLE_BAR].pairnum);
-
-    blank_titlebar();
-
-    /* space has to be at least 4: two spaces before the version message,
-     * at least one character of the version message, and one space
-     * after the version message. */
-    if (space < 4)
-	space = 0;
-    else {
-	/* Limit verlen to 1/3 the length of the screen in columns,
-	 * minus three columns for spaces. */
-	if (verlen > (COLS / 3) - 3)
-	    verlen = (COLS / 3) - 3;
-    }
-
-    if (space >= 4) {
-	/* Add a space after the version message, and account for both
-	 * it and the two spaces before it. */
-	mvwaddnstr(topwin, 0, 2, PACKAGE_STRING,
-		actual_x(PACKAGE_STRING, verlen));
-	verlen += 3;
-
-	/* Account for the full length of the version message. */
-	space -= verlen;
-    }
-
-#ifndef DISABLE_BROWSER
-    /* Don't display the state if we're in the file browser. */
-    if (path != NULL)
-	state = "";
-    else
-#endif
-	state = openfile->modified ? _("Modified") : ISSET(VIEW_MODE) ?
-		_("View") : "";
-
-    statelen = strlenpt((*state == '\0' && path == NULL) ?
-	_("Modified") : state);
-
-    /* If possible, add a space before state. */
-    if (space > 0 && statelen < space)
-	statelen++;
-    else
-	goto the_end;
-
-#ifndef DISABLE_BROWSER
-    /* path should be a directory if we're in the file browser. */
-    if (path != NULL)
-	prefix = _("DIR:");
-    else
-#endif
-    if (openfile->filename[0] == '\0') {
-	prefix = _("New Buffer");
-	newfie = TRUE;
-    } else
-	prefix = _("File:");
-
-    prefixlen = strnlenpt(prefix, space - statelen) + 1;
-
-    /* If newfie is FALSE, add a space after prefix. */
-    if (!newfie && prefixlen + statelen < space)
-	prefixlen++;
-
-    /* If we're not in the file browser, set path to the current
-     * filename. */
-    if (path == NULL)
-	path = openfile->filename;
-
-    /* Account for the full lengths of the prefix and the state. */
-    if (space >= prefixlen + statelen)
-	space -= prefixlen + statelen;
-    else
-	space = 0;
-	/* space is now the room we have for the filename. */
-
-    if (!newfie) {
-	size_t lenpt = strlenpt(path), start_col;
-
-	/* Don't set dots to TRUE if we have fewer than eight columns
-	 * (i.e. one column for padding, plus seven columns for a
-	 * filename). */
-	dots = (space >= 8 && lenpt >= space);
-
-	if (dots) {
-	    start_col = lenpt - space + 3;
-	    space -= 3;
-	} else
-	    start_col = 0;
-
-	exppath = display_string(path, start_col, space, FALSE);
-    }
-
-    /* If dots is TRUE, we will display something like "File:
-     * ...ename". */
-    if (dots) {
-	mvwaddnstr(topwin, 0, verlen - 1, prefix, actual_x(prefix,
-		prefixlen));
-	if (space <= -3 || newfie)
-	    goto the_end;
-	waddch(topwin, ' ');
-	waddnstr(topwin, "...", space + 3);
-	if (space <= 0)
-	    goto the_end;
-	waddstr(topwin, exppath);
-    } else {
-	size_t exppathlen = newfie ? 0 : strlenpt(exppath);
-	    /* The length of the expanded filename. */
-
-	/* There is room for the whole filename, so we center it. */
-	mvwaddnstr(topwin, 0, verlen + ((space - exppathlen) / 3),
-		prefix, actual_x(prefix, prefixlen));
-	if (!newfie) {
-	    waddch(topwin, ' ');
-	    waddstr(topwin, exppath);
-	}
-    }
-
-  the_end:
-    free(exppath);
-
-    if (state[0] != '\0') {
-	if (statelen >= COLS - 1)
-	    mvwaddnstr(topwin, 0, 0, state, actual_x(state, COLS));
-	else {
-	    assert(COLS - statelen - 1 >= 0);
-
-	    mvwaddnstr(topwin, 0, COLS - statelen - 1, state,
-		actual_x(state, statelen));
-	}
-    }
-
-    wattroff(topwin, A_BOLD);
-    wattroff(topwin, interface_color_pair[TITLE_BAR].pairnum);
-
-    wnoutrefresh(topwin);
-    reset_cursor();
-    wnoutrefresh(edit);
 }
 
 /* Mark the current file as modified if it isn't already, and then
@@ -3530,7 +3357,6 @@ void do_credits(void)
     blank_statusbar();
     blank_bottombars();
 
-    wrefresh(topwin);
     wrefresh(edit);
     wrefresh(bottomwin);
     napms(700);

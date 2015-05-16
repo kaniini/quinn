@@ -45,7 +45,6 @@ extern char *last_search;
 extern char *last_replace;
 
 extern unsigned flags[4];
-extern WINDOW *topwin;
 extern WINDOW *edit;
 extern WINDOW *bottomwin;
 extern int editwinrows;

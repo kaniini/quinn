@@ -738,7 +738,7 @@ void die_save_file(const char *die_filename
 void window_init(void)
 {
     /* If the screen height is too small, get out. */
-    editwinrows = LINES - 5 + more_space() + no_help();
+    editwinrows = LINES - 3 + no_help();
     if (COLS < MIN_EDITOR_COLS || editwinrows < MIN_EDITOR_ROWS)
 	die(_("Window size is too small for nano...\n"));
 
@@ -751,22 +751,17 @@ void window_init(void)
 	fill = 0;
 #endif
 
-    if (topwin != NULL)
-	delwin(topwin);
     if (edit != NULL)
 	delwin(edit);
     if (bottomwin != NULL)
 	delwin(bottomwin);
 
     /* Set up the windows. */
-    topwin = newwin(2 - more_space(), COLS, 0, 0);
-    edit = newwin(editwinrows, COLS, 2 - more_space(), 0);
-    bottomwin = newwin(3 - no_help(), COLS, editwinrows + (2 -
-	more_space()), 0);
+    edit = newwin(editwinrows, COLS, 0, 0);
+    bottomwin = newwin(3 - no_help(), COLS, editwinrows, 0);
 
     /* Turn the keypad on for the windows, if necessary. */
     if (!ISSET(REBIND_KEYPAD)) {
-	keypad(topwin, TRUE);
 	keypad(edit, TRUE);
 	keypad(bottomwin, TRUE);
     }
