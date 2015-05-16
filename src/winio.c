@@ -3134,6 +3134,7 @@ void display_main_list(void)
 void do_cursorpos(void)
 {
     int linepct;
+    const char *filename = *openfile->filename ? openfile->filename : "Untitled";
 
     assert(openfile->fileage != NULL && openfile->current != NULL);
 
@@ -3142,7 +3143,7 @@ void do_cursorpos(void)
 
     statusbar(
 	_("%s: line %ld/%ld (%d%%)."),
-	openfile->filename,
+	filename,
 	(long)openfile->current->lineno,
 	(long)openfile->filebot->lineno, linepct);
 }
