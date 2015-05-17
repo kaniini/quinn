@@ -207,9 +207,6 @@
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
-/* Define this to make the nano executable as small as possible. */
-#undef NANO_TINY
-
 /* Shut up assert warnings :-) */
 #undef NDEBUG
 

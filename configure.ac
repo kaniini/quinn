@@ -171,59 +171,6 @@ else
     AC_DEFINE(NDEBUG, 1, [Shut up assert warnings :-)])
 fi
 
-AC_ARG_ENABLE(tiny,
-AS_HELP_STRING([--enable-tiny], [Disable features for the sake of size]))
-if test "x$enable_tiny" = xyes; then
-    AC_DEFINE(NANO_TINY, 1, [Define this to make the nano executable as small as possible.])
-    if test "x$enable_browser" != xyes; then
-	AC_DEFINE(DISABLE_BROWSER, 1, [Define this to disable the built-in file browser.])
-    fi
-    if test "x$enable_color" != xyes; then
-	AC_DEFINE(DISABLE_COLOR, 1, [Define this to disable syntax highlighting.])
-	color_support=no
-    else
-	if test "x$enable_nanorc" != xyes; then
-	    AC_MSG_ERROR([--enable-color with --enable-tiny cannot work without --enable-nanorc])
-	fi
-    fi
-    if test "x$enable_extra" != xyes; then
-	AC_DEFINE(DISABLE_EXTRA, 1, [Define this to disable extra stuff.])
-    fi
-    if test "x$enable_help" != xyes; then
-	AC_DEFINE(DISABLE_HELP, 1, [Define this to disable the help text display.])
-    fi
-    if test "x$enable_histories" != xyes; then
-	AC_DEFINE(DISABLE_HISTORIES, 1, [Define this to disable search and position histories.])
-    fi
-    if test "x$enable_justify" != xyes; then
-	AC_DEFINE(DISABLE_JUSTIFY, 1, [Define this to disable the justify routines.])
-    fi
-    if test "x$enable_libmagic" != xyes; then
-	enable_libmagic=no
-    fi
-    if test "x$enable_mouse" != xyes; then
-	AC_DEFINE(DISABLE_MOUSE, 1, [Define this to disable the mouse support.])
-    fi
-    if test "x$enable_multibuffer" != xyes; then
-	AC_DEFINE(DISABLE_MULTIBUFFER, 1, [Define this to disable multiple file buffers.])
-    fi
-    if test "x$enable_nanorc" != xyes; then
-	AC_DEFINE(DISABLE_NANORC, 1, [Define this to disable the use of .nanorc files.])
-    fi
-    if test "x$enable_operatingdir" != xyes; then
-	AC_DEFINE(DISABLE_OPERATINGDIR, 1, [Define this to disable the setting of the operating directory (chroot of sorts).])
-    fi
-    if test "x$enable_speller" != xyes; then
-	AC_DEFINE(DISABLE_SPELLER, 1, [Define this to disable the spell checker functions.])
-    fi
-    if test "x$enable_tabcomp" != xyes; then
-	AC_DEFINE(DISABLE_TABCOMP, 1, [Define this to disable the tab completion functions for files and search strings.])
-    fi
-    if test "x$enable_wrapping" != xyes; then
-	AC_DEFINE(DISABLE_WRAPPING, 1, [Define this to disable all text wrapping.])
-    fi
-fi
-
 AM_CONDITIONAL(USE_COLOR, test x$color_support = xyes)
 AM_CONDITIONAL(USE_NANORC, test x$nanorc_support = xyes)
 
