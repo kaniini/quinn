@@ -964,9 +964,6 @@ void version(void)
 #else
     printf(" --disable-utf8");
 #endif
-#ifdef USE_SLANG
-    printf(" --with-slang");
-#endif
     printf("\n");
 }
 
@@ -1253,19 +1250,10 @@ RETSIGTYPE handle_sigwinch(int signal)
     if (filepart != NULL)
 	unpartition_filestruct(&filepart);
 
-#ifdef USE_SLANG
-    /* Slang curses emulation brain damage, part 1: If we just do what
-     * curses does here, it'll only work properly if the resize made the
-     * window smaller.  Do what mutt does: Leave and immediately reenter
-     * Slang screen management mode. */
-    SLsmg_reset_smg();
-    SLsmg_init_smg();
-#else
     /* Do the equivalent of what Minimum Profit does: Leave and
      * immediately reenter curses mode. */
     endwin();
     doupdate();
-#endif
 
     /* Restore the terminal to its previous state. */
     terminal_init();
@@ -1424,36 +1412,15 @@ void enable_flow_control(void)
  * control characters. */
 void terminal_init(void)
 {
-#ifdef USE_SLANG
-    /* Slang curses emulation brain damage, part 2: Slang doesn't
-     * implement raw(), nonl(), or noecho() properly, so there's no way
-     * to properly reinitialize the terminal using them.  We have to
-     * disable the special control keys and interpretation of the flow
-     * control characters using termios, save the terminal state after
-     * the first call, and restore it on subsequent calls. */
-    static struct termios newterm;
-    static bool newterm_set = FALSE;
+    raw();
+    nonl();
+    noecho();
+    disable_extended_io();
 
-    if (!newterm_set) {
-#endif
+    if (ISSET(PRESERVE))
+        enable_flow_control();
 
-	raw();
-	nonl();
-	noecho();
-	disable_extended_io();
-	if (ISSET(PRESERVE))
-	    enable_flow_control();
-
-	disable_signals();
-#ifdef USE_SLANG
-	if (!ISSET(PRESERVE))
-	    disable_flow_control();
-
-	tcgetattr(0, &newterm);
-	newterm_set = TRUE;
-    } else
-	tcsetattr(0, TCSANOW, &newterm);
-#endif
+     disable_signals();
 }
 
 /* Read in a character, interpret it as a shortcut or toggle if
@@ -2036,9 +2003,6 @@ int main(int argc, char **argv)
 
 	if (locale != NULL && (strcmp(nl_langinfo(CODESET),
 		"UTF-8") == 0)) {
-#ifdef USE_SLANG
-	    SLutf8_enable(1);
-#endif
 	    utf8_init();
 	}
     }

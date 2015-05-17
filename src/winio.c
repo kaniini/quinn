@@ -480,34 +480,32 @@ int parse_kbinput(WINDOW *win)
 		break;
 	    case KEY_DOWN:
 #ifdef KEY_SDOWN
-	    /* ncurses and Slang don't support KEY_SDOWN. */
+	    /* ncurses doesn't support KEY_SDOWN. */
 	    case KEY_SDOWN:
 #endif
 		retval = sc_seq_or(do_down_void, *kbinput);
 		break;
 	    case KEY_UP:
 #ifdef KEY_SUP
-	    /* ncurses and Slang don't support KEY_SUP. */
+	    /* ncurses doesn't support KEY_SUP. */
 	    case KEY_SUP:
 #endif
 		retval = sc_seq_or(do_up_void, *kbinput);
 		break;
 	    case KEY_LEFT:
 #ifdef KEY_SLEFT
-	    /* Slang doesn't support KEY_SLEFT. */
 	    case KEY_SLEFT:
 #endif
 		retval = sc_seq_or(do_left, *kbinput);
 		break;
 	    case KEY_RIGHT:
 #ifdef KEY_SRIGHT
-	    /* Slang doesn't support KEY_SRIGHT. */
 	    case KEY_SRIGHT:
 #endif
 		retval = sc_seq_or(do_right, *kbinput);
 		break;
 #ifdef KEY_SHOME
-	    /* HP-UX 10-11 and Slang don't support KEY_SHOME. */
+	    /* HP-UX 10-11 doesn't support KEY_SHOME. */
 	    case KEY_SHOME:
 #endif
 	    case KEY_A1:	/* Home (7) on numeric keypad with
@@ -518,7 +516,6 @@ int parse_kbinput(WINDOW *win)
 		retval = sc_seq_or(do_backspace, *kbinput);
 		break;
 #ifdef KEY_SDC
-	    /* Slang doesn't support KEY_SDC. */
 	    case KEY_SDC:
 		if (ISSET(REBIND_DELETE))
 		    retval = sc_seq_or(do_delete, *kbinput);
@@ -527,7 +524,6 @@ int parse_kbinput(WINDOW *win)
 		break;
 #endif
 #ifdef KEY_SIC
-	    /* Slang doesn't support KEY_SIC. */
 	    case KEY_SIC:
 		retval = sc_seq_or(do_insertfile_void, *kbinput);
 		break;
@@ -550,43 +546,37 @@ int parse_kbinput(WINDOW *win)
 	    case KEY_C1:	/* End (1) on numeric keypad with
 				 * NumLock off. */
 #ifdef KEY_SEND
-	    /* HP-UX 10-11 and Slang don't support KEY_SEND. */
+	    /* HP-UX 10-11 doesn't support KEY_SEND. */
 	    case KEY_SEND:
 #endif
 		retval = sc_seq_or(do_end, *kbinput);
 		break;
 #ifdef KEY_BEG
-	    /* Slang doesn't support KEY_BEG. */
 	    case KEY_BEG:	/* Center (5) on numeric keypad with
 				 * NumLock off. */
 		retval = ERR;
 		break;
 #endif
 #ifdef KEY_CANCEL
-	    /* Slang doesn't support KEY_CANCEL. */
 	    case KEY_CANCEL:
 #ifdef KEY_SCANCEL
-	    /* Slang doesn't support KEY_SCANCEL. */
 	    case KEY_SCANCEL:
 #endif
 		retval = first_sc_for(currmenu, do_cancel)->seq;
 		break;
 #endif
 #ifdef KEY_SBEG
-	    /* Slang doesn't support KEY_SBEG. */
 	    case KEY_SBEG:	/* Center (5) on numeric keypad with
 				 * NumLock off. */
 		retval = ERR;
 		break;
 #endif
 #ifdef KEY_SSUSPEND
-	    /* Slang doesn't support KEY_SSUSPEND. */
 	    case KEY_SSUSPEND:
 		retval = sc_seq_or(do_suspend_void, 0);
 		break;
 #endif
 #ifdef KEY_SUSPEND
-	    /* Slang doesn't support KEY_SUSPEND. */
 	    case KEY_SUSPEND:
 		retval = sc_seq_or(do_suspend_void, 0);
 		break;
@@ -2271,12 +2261,10 @@ void edit_draw(filestruct *fileptr, const char *converted, int
      * marking highlight on just the pieces that need it. */
     mvwaddstr(edit, line, 0, converted);
 
-#ifndef USE_SLANG
     /* Tell ncurses to really redraw the line without trying to optimize
      * for what it thinks is already there, because it gets it wrong in
      * the case of a wide character in column zero.  See bug #31743. */
     wredrawln(edit, line, 1);
-#endif
 
 #ifndef DISABLE_COLOR
     /* If color syntaxes are available and turned on, we need to display
@@ -3034,14 +3022,7 @@ void edit_update(update_type location)
 /* Unconditionally redraw the entire screen. */
 void total_redraw(void)
 {
-#ifdef USE_SLANG
-    /* Slang curses emulation brain damage, part 4: Slang doesn't define
-     * curscr. */
-    SLsmg_touch_screen();
-    SLsmg_refresh();
-#else
     wrefresh(curscr);
-#endif
 }
 
 /* Unconditionally redraw the entire screen, and then refresh it using

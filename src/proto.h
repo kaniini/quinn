@@ -429,9 +429,6 @@ void allow_pending_sigwinch(bool allow);
 void do_toggle(int flag);
 void do_toggle_void(void);
 void disable_extended_io(void);
-#ifdef USE_SLANG
-void disable_signals(void);
-#endif
 void enable_signals(void);
 void disable_flow_control(void);
 void enable_flow_control(void);
