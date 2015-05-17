@@ -155,12 +155,10 @@ int do_statusbar_input(bool *ran_func, bool *finished,
 		do_statusbar_left();
 	    else if (s->scfunc == do_right)
 		do_statusbar_right();
-#ifndef NANO_TINY
 	    else if (s->scfunc == do_prev_word_void)
 		do_statusbar_prev_word(FALSE);
 	    else if (s->scfunc == do_next_word_void)
 		do_statusbar_next_word(FALSE);
-#endif
 	    else if (s->scfunc == do_home)
 		do_statusbar_home();
 	    else if (s->scfunc == do_end)
@@ -329,7 +327,6 @@ void do_statusbar_home(void)
 {
     size_t pww_save = statusbar_pww;
 
-#ifndef NANO_TINY
     if (ISSET(SMART_HOME)) {
 	size_t statusbar_x_save = statusbar_x;
 
@@ -340,9 +337,7 @@ void do_statusbar_home(void)
 	    statusbar_x = 0;
 
 	statusbar_pww = statusbar_xplustabs();
-    } else
-#endif
-    {
+    } else {
 	statusbar_x = 0;
 	statusbar_pww = statusbar_xplustabs();
     }
@@ -427,12 +422,9 @@ void do_statusbar_cut_text(void)
 {
     assert(answer != NULL);
 
-#ifndef NANO_TINY
     if (ISSET(CUT_TO_END))
 	null_at(&answer, statusbar_x);
-    else
-#endif
-    {
+    else {
 	null_at(&answer, 0);
 	statusbar_x = 0;
 	statusbar_pww = statusbar_xplustabs();
@@ -441,7 +433,6 @@ void do_statusbar_cut_text(void)
     update_statusbar_line(answer, statusbar_x);
 }
 
-#ifndef NANO_TINY
 /* Move to the next word in the prompt text.  If allow_punct is TRUE,
  * treat punctuation as part of a word.  Return TRUE if we started on a
  * word, and FALSE otherwise. */
@@ -601,7 +592,6 @@ bool do_statusbar_prev_word(bool allow_punct)
     /* Return whether we started on a word. */
     return started_on_word;
 }
-#endif /* !NANO_TINY */
 
 /* Get verbatim input.  Set got_enter to TRUE if we got the Enter key as
  * part of the verbatim input. */

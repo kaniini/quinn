@@ -42,9 +42,7 @@ static const rcoption rcopts[] = {
 #ifndef DISABLE_WRAPJUSTIFY
     {"fill", 0},
 #endif
-#ifndef NANO_TINY
     {"locking", LOCKING},
-#endif
 #ifndef DISABLE_MOUSE
     {"mouse", USE_MOUSE},
 #endif
@@ -78,7 +76,6 @@ static const rcoption rcopts[] = {
     {"tabsize", 0},
     {"tempfile", TEMP_FILE},
     {"view", VIEW_MODE},
-#ifndef NANO_TINY
     {"autoindent", AUTOINDENT},
     {"backup", BACKUP_FILE},
     {"allow_insecure_backup", INSECURE_BACKUP},
@@ -98,7 +95,6 @@ static const rcoption rcopts[] = {
     {"whitespace", 0},
     {"wordbounds", WORD_BOUNDS},
     {"softwrap", SOFTWRAP},
-#endif
 #ifndef DISABLE_COLOR
     {"titlecolor", 0},
     {"statuscolor", 0},
@@ -405,9 +401,7 @@ bool is_universal(void (*func))
 {
     if (func == do_left || func == do_right ||
 	func == do_home || func == do_end ||
-#ifndef NANO_TINY
 	func == do_prev_word_void || func == do_next_word_void ||
-#endif
 	func == do_verbatim_input || func == do_cut_text_void ||
 	func == do_delete || func == do_backspace ||
 	func == do_tab || func == do_enter)
@@ -1259,7 +1253,6 @@ void parse_rcfile(FILE *rcstream
 				free(option);
 			} else
 #endif
-#ifndef NANO_TINY
 			if (strcasecmp(rcopts[i].name,
 				"matchbrackets") == 0) {
 			    matchbrackets = option;
@@ -1287,7 +1280,6 @@ void parse_rcfile(FILE *rcstream
 					whitespace_len[0], NULL, NULL);
 			    }
 			} else
-#endif
 #ifndef DISABLE_JUSTIFY
 			if (strcasecmp(rcopts[i].name, "punct") == 0) {
 			    punct = option;
@@ -1311,12 +1303,10 @@ void parse_rcfile(FILE *rcstream
 			    quotestr = option;
 			else
 #endif
-#ifndef NANO_TINY
 			if (strcasecmp(rcopts[i].name,
 				"backupdir") == 0)
 			    backup_dir = option;
 			else
-#endif
 #ifndef DISABLE_SPELLER
 			if (strcasecmp(rcopts[i].name, "speller") == 0)
 			    alt_speller = option;

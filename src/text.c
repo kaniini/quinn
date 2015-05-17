@@ -31,11 +31,9 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-#ifndef NANO_TINY
 static pid_t pid = -1;
 	/* The PID of the forked process in execute_command(), for use
 	 * with the cancel_command() signal handler. */
-#endif
 #ifndef DISABLE_WRAPPING
 static bool prepend_wrap = FALSE;
 	/* Should we prepend wrapped text to the next line? */
@@ -45,7 +43,6 @@ static filestruct *jusbottom = NULL;
 	/* Pointer to the end of the justify buffer. */
 #endif
 
-#ifndef NANO_TINY
 /* Toggle the mark. */
 void do_mark(void)
 {
@@ -61,14 +58,11 @@ void do_mark(void)
 	edit_refresh();
     }
 }
-#endif /* !NANO_TINY */
 
 /* Delete the character under the cursor. */
 void do_deletion(undo_type action)
 {
-#ifndef NANO_TINY
     size_t orig_lenpt = 0;
-#endif
 
     assert(openfile->current != NULL && openfile->current->data != NULL && openfile->current_x <= strlen(openfile->current->data));
 
@@ -82,12 +76,10 @@ void do_deletion(undo_type action)
 
 	assert(openfile->current_x < strlen(openfile->current->data));
 
-#ifndef NANO_TINY
 	update_undo(action);
 
 	if (ISSET(SOFTWRAP))
 	    orig_lenpt = strlenpt(openfile->current->data);
-#endif
 
 	/* Let's get dangerous. */
 	charmove(&openfile->current->data[openfile->current_x],
@@ -96,21 +88,20 @@ void do_deletion(undo_type action)
 
 	null_at(&openfile->current->data, openfile->current_x +
 		line_len - char_buf_len);
-#ifndef NANO_TINY
+
 	if (openfile->mark_set && openfile->mark_begin ==
 		openfile->current && openfile->current_x <
 		openfile->mark_begin_x)
 	    openfile->mark_begin_x -= char_buf_len;
-#endif
+
 	openfile->totsize--;
     } else if (openfile->current != openfile->filebot) {
 	filestruct *foo = openfile->current->next;
 
 	assert(openfile->current_x == strlen(openfile->current->data));
 
-#ifndef NANO_TINY
 	add_undo(action);
-#endif
+
 	/* If we're deleting at the end of a line, we need to call
 	 * edit_refresh(). */
 	if (openfile->current->data[openfile->current_x] == '\0')
@@ -119,13 +110,13 @@ void do_deletion(undo_type action)
 	openfile->current->data = charealloc(openfile->current->data,
 		strlen(openfile->current->data) + strlen(foo->data) + 1);
 	strcat(openfile->current->data, foo->data);
-#ifndef NANO_TINY
+
 	if (openfile->mark_set && openfile->mark_begin ==
 		openfile->current->next) {
 	    openfile->mark_begin = openfile->current;
 	    openfile->mark_begin_x += openfile->current_x;
 	}
-#endif
+
 	if (openfile->filebot == foo)
 	    openfile->filebot = openfile->current;
 
@@ -143,11 +134,9 @@ void do_deletion(undo_type action)
     } else
 	return;
 
-#ifndef NANO_TINY
     if (ISSET(SOFTWRAP) && edit_refresh_needed == FALSE)
 	if (strlenpt(openfile->current->data) / COLS != orig_lenpt / COLS)
 	    edit_refresh_needed = TRUE;
-#endif
 
     set_modified();
 
@@ -175,7 +164,6 @@ void do_backspace(void)
  * of spaces that a tab would normally take up. */
 void do_tab(void)
 {
-#ifndef NANO_TINY
     if (ISSET(TABS_TO_SPACES)) {
 	char *output;
 	size_t output_len = 0, new_pww = xplustabs();
@@ -194,14 +182,10 @@ void do_tab(void)
 
 	free(output);
     } else {
-#endif
 	do_output((char *) "\t", 1, TRUE);
-#ifndef NANO_TINY
     }
-#endif
 }
 
-#ifndef NANO_TINY
 /* Indent or unindent the current line (or, if the mark is on, all lines
  * covered by the mark) len columns, depending on whether len is
  * positive or negative.  If the TABS_TO_SPACES flag is set, indent or
@@ -688,7 +672,6 @@ void do_redo(void)
     openfile->placewewant = xplustabs();
     set_modified();
 }
-#endif /* !NANO_TINY */
 
 /* Someone hits Enter *gasp!* */
 void do_enter(bool undoing)
@@ -698,7 +681,6 @@ void do_enter(bool undoing)
 
     assert(openfile->current != NULL && openfile->current->data != NULL);
 
-#ifndef NANO_TINY
     if (!undoing)
 	add_undo(ENTER);
 
@@ -711,26 +693,26 @@ void do_enter(bool undoing)
 	if (extra > openfile->current_x)
 	    extra = openfile->current_x;
     }
-#endif
+
     newnode->data = charalloc(strlen(openfile->current->data +
 	openfile->current_x) + extra + 1);
     strcpy(&newnode->data[extra], openfile->current->data +
 	openfile->current_x);
-#ifndef NANO_TINY
+
     if (ISSET(AUTOINDENT)) {
 	strncpy(newnode->data, openfile->current->data, extra);
 	openfile->totsize += extra;
     }
-#endif
+
     null_at(&openfile->current->data, openfile->current_x);
-#ifndef NANO_TINY
+
     if (openfile->mark_set && openfile->current ==
 	openfile->mark_begin && openfile->current_x <
 	openfile->mark_begin_x) {
 	openfile->mark_begin = newnode;
 	openfile->mark_begin_x += extra - openfile->current_x;
     }
-#endif
+
     openfile->current_x = extra;
 
     if (openfile->current == openfile->filebot)
@@ -746,10 +728,8 @@ void do_enter(bool undoing)
 
     openfile->placewewant = xplustabs();
 
-#ifndef NANO_TINY
     if (!undoing)
 	update_undo(ENTER);
-#endif
 
     edit_refresh_needed = TRUE;
 }
@@ -760,7 +740,6 @@ void do_enter_void(void)
     do_enter(FALSE);
 }
 
-#ifndef NANO_TINY
 /* Send a SIGKILL (unconditional kill) to the forked process in
  * execute_command(). */
 RETSIGTYPE cancel_command(int signal)
@@ -1120,7 +1099,6 @@ fprintf(stderr, "action = %d, fs->last_action = %d, openfile->current->lineno = 
     fprintf(stderr, "Done in update_undo (type was %d)\n", action);
 #endif
 }
-#endif /* !NANO_TINY */
 
 #ifndef DISABLE_WRAPPING
 /* Unset the prepend_wrap flag.  We need to do this as soon as we do
@@ -1137,12 +1115,10 @@ bool do_wrap(filestruct *line)
 	/* The length of the line we wrap. */
     ssize_t wrap_loc;
 	/* The index of line->data where we wrap. */
-#ifndef NANO_TINY
     const char *indent_string = NULL;
 	/* Indentation to prepend to the new line. */
     size_t indent_len = 0;
 	/* The length of indent_string. */
-#endif
     const char *after_break;
 	/* The text after the wrap point. */
     size_t after_break_len;
@@ -1189,7 +1165,6 @@ bool do_wrap(filestruct *line)
     if (line->data[wrap_loc] == '\0')
 	return FALSE;
 
-#ifndef NANO_TINY
     /* If autoindent is turned on, and we're on the character just after
      * the indentation, we don't wrap. */
     if (ISSET(AUTOINDENT)) {
@@ -1202,7 +1177,6 @@ bool do_wrap(filestruct *line)
     }
 
     add_undo(SPLIT_BEGIN);
-#endif
 
     size_t old_x = openfile->current_x;
     filestruct * oldLine = openfile->current;
@@ -1233,9 +1207,7 @@ bool do_wrap(filestruct *line)
 	/* If after_break doesn't end in a blank, make sure it ends in a
 	 * space. */
 	if (!is_blank_mbchar(end)) {
-#ifndef NANO_TINY
 	    add_undo(ADD);
-#endif
 	    line_len++;
 	    line->data = charealloc(line->data, line_len + 1);
 	    line->data[line_len - 1] = ' ';
@@ -1244,9 +1216,7 @@ bool do_wrap(filestruct *line)
 	    after_break_len++;
 	    openfile->totsize++;
 	    openfile->current_x++;
-#ifndef NANO_TINY
 	    update_undo(ADD);
-#endif
 	}
 
 	next_line = line->next->data;
@@ -1277,9 +1247,7 @@ bool do_wrap(filestruct *line)
 
     openfile->placewewant = xplustabs();
 
-#ifndef NANO_TINY
     add_undo(SPLIT_END);
-#endif
 
     return TRUE;
 }
@@ -1385,7 +1353,7 @@ ssize_t break_line(const char *line, ssize_t goal
 }
 #endif /* !DISABLE_HELP || !DISABLE_WRAPJUSTIFY */
 
-#if !defined(NANO_TINY) || !defined(DISABLE_JUSTIFY)
+#ifndef DISABLE_JUSTIFY
 /* The "indentation" of a line is the whitespace between the quote part
  * and the non-whitespace of the line. */
 size_t indent_length(const char *line)
@@ -1412,7 +1380,7 @@ size_t indent_length(const char *line)
 
     return len;
 }
-#endif /* !NANO_TINY || !DISABLE_JUSTIFY */
+#endif /* !DISABLE_JUSTIFY */
 
 #ifndef DISABLE_JUSTIFY
 /* justify_format() replaces blanks with spaces and multiple spaces by 1
@@ -1429,9 +1397,7 @@ void justify_format(filestruct *paragraph, size_t skip)
 {
     char *end, *new_end, *new_paragraph_data;
     size_t shift = 0;
-#ifndef NANO_TINY
     size_t mark_shift = 0;
-#endif
 
     /* These four asserts are assumptions about the input data. */
     assert(paragraph != NULL);
@@ -1462,13 +1428,11 @@ void justify_format(filestruct *paragraph, size_t skip)
 		end += end_len;
 		shift += end_len;
 
-#ifndef NANO_TINY
 		/* Keep track of the change in the current line. */
 		if (openfile->mark_set && openfile->mark_begin ==
 			paragraph && openfile->mark_begin_x >= end -
 			paragraph->data)
 		    mark_shift += end_len;
-#endif
 	    }
 	/* If this character is punctuation optionally followed by a
 	 * bracket and then followed by blanks, change no more than two
@@ -1517,13 +1481,11 @@ void justify_format(filestruct *paragraph, size_t skip)
 		end += end_len;
 		shift += end_len;
 
-#ifndef NANO_TINY
 		/* Keep track of the change in the current line. */
 		if (openfile->mark_set && openfile->mark_begin ==
 			paragraph && openfile->mark_begin_x >= end -
 			paragraph->data)
 		    mark_shift += end_len;
-#endif
 	    }
 	/* If this character is neither blank nor punctuation, leave it
 	 * unchanged. */
@@ -1556,7 +1518,6 @@ void justify_format(filestruct *paragraph, size_t skip)
 	free(paragraph->data);
 	paragraph->data = new_paragraph_data;
 
-#ifndef NANO_TINY
 	/* Adjust the mark coordinates to compensate for the change in
 	 * the current line. */
 	if (openfile->mark_set && openfile->mark_begin == paragraph) {
@@ -1564,7 +1525,6 @@ void justify_format(filestruct *paragraph, size_t skip)
 	    if (openfile->mark_begin_x > new_end - new_paragraph_data)
 		openfile->mark_begin_x = new_end - new_paragraph_data;
 	}
-#endif
     } else
 	free(new_paragraph_data);
 }
@@ -1671,9 +1631,7 @@ bool begpar(const filestruct *const foo)
     /* Case 2) or 5) or 4). */
     if (foo->prev->data[quote_len + temp_id_len] == '\0' ||
 	(quote_len == 0 && indent_len > 0
-#ifndef NANO_TINY
 	&& !ISSET(AUTOINDENT)
-#endif
 	) || !indents_match(foo->prev->data + quote_len, temp_id_len,
 	foo->data + quote_len, indent_len))
 	return TRUE;
@@ -1711,7 +1669,6 @@ void backup_lines(filestruct *first_line, size_t par_len)
     ssize_t fl_lineno_save = first_line->lineno;
     ssize_t edittop_lineno_save = openfile->edittop->lineno;
     ssize_t current_lineno_save = openfile->current->lineno;
-#ifndef NANO_TINY
     bool old_mark_set = openfile->mark_set;
     ssize_t mb_lineno_save = 0;
     size_t mark_begin_x_save = 0;
@@ -1720,7 +1677,6 @@ void backup_lines(filestruct *first_line, size_t par_len)
 	mb_lineno_save = openfile->mark_begin->lineno;
 	mark_begin_x_save = openfile->mark_begin_x;
     }
-#endif
 
     /* par_len will be one greater than the number of lines between
      * current and filebot if filebot is the last line in the
@@ -1748,13 +1704,11 @@ void backup_lines(filestruct *first_line, size_t par_len)
      * paragraph. */
     if (openfile->current != openfile->fileage) {
 	top = openfile->current->prev;
-#ifndef NANO_TINY
 	if (old_mark_set &&
 		openfile->current->lineno == mb_lineno_save) {
 	    openfile->mark_begin = openfile->current;
 	    openfile->mark_begin_x = mark_begin_x_save;
 	}
-#endif
     } else
 	top = openfile->current;
     for (i = par_len; i > 0 && top != NULL; i--) {
@@ -1764,12 +1718,12 @@ void backup_lines(filestruct *first_line, size_t par_len)
 	    openfile->edittop = top;
 	if (top->lineno == current_lineno_save)
 	    openfile->current = top;
-#ifndef NANO_TINY
+
 	if (old_mark_set && top->lineno == mb_lineno_save) {
 	    openfile->mark_begin = top;
 	    openfile->mark_begin_x = mark_begin_x_save;
 	}
-#endif
+
 	top = top->prev;
     }
 
@@ -1895,10 +1849,8 @@ void do_justify(bool full_justify)
     size_t current_x_save = openfile->current_x;
     size_t pww_save = openfile->placewewant;
     size_t totsize_save = openfile->totsize;
-#ifndef NANO_TINY
     filestruct *mark_begin_save = openfile->mark_begin;
     size_t mark_begin_x_save = openfile->mark_begin_x;
-#endif
     bool modified_save = openfile->modified;
 
     /* Move to the beginning of the current line, so that justifying at
@@ -1910,9 +1862,7 @@ void do_justify(bool full_justify)
     if (full_justify)
 	openfile->current = openfile->fileage;
 
-#ifndef NANO_TINY
     allow_pending_sigwinch(FALSE);
-#endif
 
     while (TRUE) {
 	size_t i;
@@ -2055,7 +2005,6 @@ void do_justify(bool full_justify)
 	    if (next_line == openfile->filebot)
 		openfile->filebot = openfile->current;
 
-#ifndef NANO_TINY
 	    /* Adjust the mark coordinates to compensate for the change
 	     * in the next line. */
 	    if (openfile->mark_set && openfile->mark_begin ==
@@ -2063,7 +2012,6 @@ void do_justify(bool full_justify)
 		openfile->mark_begin = openfile->current;
 		openfile->mark_begin_x += line_len - indent_len;
 	    }
-#endif
 
 	    unlink_node(next_line);
 	    delete_node(next_line);
@@ -2117,11 +2065,7 @@ void do_justify(bool full_justify)
 	    /* If this paragraph is non-quoted, and autoindent isn't
 	     * turned on, set the indentation length to zero so that the
 	     * indentation is treated as part of the line. */
-	    if (quote_len == 0
-#ifndef NANO_TINY
-		&& !ISSET(AUTOINDENT)
-#endif
-		)
+	    if (quote_len == 0 && !ISSET(AUTOINDENT))
 		indent_len = 0;
 
 	    /* Copy the text after where we're going to break the
@@ -2136,7 +2080,6 @@ void do_justify(bool full_justify)
 	    par_len++;
 	    openfile->totsize += indent_len + 1;
 
-#ifndef NANO_TINY
 	    /* Adjust the mark coordinates to compensate for the change
 	     * in the current line. */
 	    if (openfile->mark_set && openfile->mark_begin ==
@@ -2145,7 +2088,6 @@ void do_justify(bool full_justify)
 		openfile->mark_begin = openfile->current->next;
 		openfile->mark_begin_x -= break_pos - indent_len;
 	    }
-#endif
 
 	    /* Break the current line. */
 	    null_at(&openfile->current->data, break_pos);
@@ -2195,14 +2137,12 @@ void do_justify(bool full_justify)
 
     edit_refresh();
 
-#ifndef NANO_TINY
     /* We're going to set jump_buf so that we return here after a
      * SIGWINCH instead of to main().  Indicate this. */
     jump_buf_main = FALSE;
 
     /* Return here after a SIGWINCH. */
     sigsetjmp(jump_buf, 1);
-#endif
 
     statusbar(_("Can now UnJustify!"));
 
@@ -2254,12 +2194,12 @@ void do_justify(bool full_justify)
 	    openfile->current_x = current_x_save;
 	    openfile->placewewant = pww_save;
 	    openfile->totsize = totsize_save;
-#ifndef NANO_TINY
+
 	    if (openfile->mark_set) {
 		openfile->mark_begin = mark_begin_save;
 		openfile->mark_begin_x = mark_begin_x_save;
 	    }
-#endif
+
 	    openfile->modified = modified_save;
 
 	    /* Clear the justify buffer. */
@@ -2283,9 +2223,7 @@ void do_justify(bool full_justify)
     uncutfunc->desc = uncut_tag;
     display_main_list();
 
-#ifndef NANO_TINY
     allow_pending_sigwinch(TRUE);
-#endif
 }
 
 /* Justify the current paragraph. */
@@ -2315,13 +2253,10 @@ bool do_int_spell_fix(const char *word)
     bool canceled = FALSE;
 	/* The return value. */
     bool case_sens_set = ISSET(CASE_SENSITIVE);
-#ifndef NANO_TINY
     bool backwards_search_set = ISSET(BACKWARDS_SEARCH);
-#endif
 #ifdef HAVE_REGEX_H
     bool regexp_set = ISSET(USE_REGEXP);
 #endif
-#ifndef NANO_TINY
     bool old_mark_set = openfile->mark_set;
     bool added_magicline = FALSE;
 	/* Whether we added a magicline after filebot. */
@@ -2330,15 +2265,13 @@ bool do_int_spell_fix(const char *word)
 	 * FALSE if (current, current_x) is. */
     filestruct *top, *bot;
     size_t top_x, bot_x;
-#endif
 
     /* Make sure spell-check is case sensitive. */
     SET(CASE_SENSITIVE);
 
-#ifndef NANO_TINY
     /* Make sure spell-check goes forward only. */
     UNSET(BACKWARDS_SEARCH);
-#endif
+
 #ifdef HAVE_REGEX_H
     /* Make sure spell-check doesn't use regular expressions. */
     UNSET(USE_REGEXP);
@@ -2353,7 +2286,6 @@ bool do_int_spell_fix(const char *word)
     last_search = mallocstrcpy(NULL, word);
     last_replace = mallocstrcpy(NULL, word);
 
-#ifndef NANO_TINY
     if (old_mark_set) {
 	/* If the mark is on, partition the filestruct so that it
 	 * contains only the marked text; if the NO_NEWLINES flag isn't
@@ -2367,7 +2299,6 @@ bool do_int_spell_fix(const char *word)
 	    added_magicline = (openfile->filebot->data[0] != '\0');
 	openfile->mark_set = FALSE;
     }
-#endif
 
     /* Start from the top of the file. */
     openfile->edittop = openfile->fileage;
@@ -2415,7 +2346,6 @@ bool do_int_spell_fix(const char *word)
 	}
     }
 
-#ifndef NANO_TINY
     if (old_mark_set) {
 	/* If the mark was on, the NO_NEWLINES flag isn't set, and we
 	 * added a magicline, remove it now. */
@@ -2439,7 +2369,6 @@ bool do_int_spell_fix(const char *word)
 	unpartition_filestruct(&filepart);
 	openfile->mark_set = TRUE;
     }
-#endif
 
     /* Restore the search/replace strings. */
     free(last_search);
@@ -2457,11 +2386,10 @@ bool do_int_spell_fix(const char *word)
     if (!case_sens_set)
 	UNSET(CASE_SENSITIVE);
 
-#ifndef NANO_TINY
     /* Restore search/replace direction. */
     if (backwards_search_set)
 	SET(BACKWARDS_SEARCH);
-#endif
+
 #ifdef HAVE_REGEX_H
     /* Restore regular expression usage setting. */
     if (regexp_set)
@@ -2666,7 +2594,6 @@ const char *do_alt_speller(char *tempfile_name)
     char *ptr;
     static int arglen = 3;
     static char **spellargs = NULL;
-#ifndef NANO_TINY
     bool old_mark_set = openfile->mark_set;
     bool added_magicline = FALSE;
 	/* Whether we added a magicline after filebot. */
@@ -2681,7 +2608,6 @@ const char *do_alt_speller(char *tempfile_name)
     size_t totsize_save = openfile->totsize;
 	/* Our saved value of totsize, used when we spell-check a marked
 	 * selection. */
-#endif
 
     /* Get the timestamp and the size of the temporary file. */
     stat(tempfile_name, &spellfileinfo);
@@ -2691,14 +2617,12 @@ const char *do_alt_speller(char *tempfile_name)
     if (spellfileinfo.st_size == 0)
 	return NULL;
 
-#ifndef NANO_TINY
     if (old_mark_set) {
 	/* If the mark is on, save the number of the line it starts on,
 	 * and then turn the mark off. */
 	mb_lineno_save = openfile->mark_begin->lineno;
 	openfile->mark_set = FALSE;
     }
-#endif
 
     endwin();
 
@@ -2730,11 +2654,9 @@ const char *do_alt_speller(char *tempfile_name)
     if (pid_spell < 0)
 	return _("Could not fork");
 
-#ifndef NANO_TINY
     /* Don't handle a pending SIGWINCH until the alternate spell checker
      * is finished and we've loaded the spell-checked file back in. */
     allow_pending_sigwinch(FALSE);
-#endif
 
     /* Wait for the alternate spell checker to finish. */
     wait(&alt_spell_status);
@@ -2757,10 +2679,8 @@ const char *do_alt_speller(char *tempfile_name)
 	char *alt_spell_error;
 	char *invoke_error = _("Error invoking \"%s\"");
 
-#ifndef NANO_TINY
 	/* Turn the mark back on if it was on before. */
 	openfile->mark_set = old_mark_set;
-#endif
 
 	alt_spell_error =
 		charalloc(strlen(invoke_error) +
@@ -2769,7 +2689,6 @@ const char *do_alt_speller(char *tempfile_name)
 	return alt_spell_error;
     }
 
-#ifndef NANO_TINY
     if (old_mark_set) {
 	/* If the mark is on, partition the filestruct so that it
 	 * contains only the marked text; if the NO_NEWLINES flag isn't
@@ -2786,13 +2705,11 @@ const char *do_alt_speller(char *tempfile_name)
 	 * it from the saved value of totsize. */
 	totsize_save -= get_totsize(top, bot);
     }
-#endif
 
     /* Replace the text of the current buffer with the spell-checked
      * text. */
     replace_buffer(tempfile_name);
 
-#ifndef NANO_TINY
     if (old_mark_set) {
 	filestruct *top_save = openfile->fileage;
 	/* Adjust the end point of the marked region for any change in
@@ -2827,7 +2744,6 @@ const char *do_alt_speller(char *tempfile_name)
 	/* Turn the mark back on. */
 	openfile->mark_set = TRUE;
     }
-#endif
 
     /* Go back to the old position. */
     goto_line_posx(lineno_save, current_x_save);
@@ -2840,10 +2756,8 @@ const char *do_alt_speller(char *tempfile_name)
     if (spellfileinfo.st_mtime != timestamp)
 	set_modified();
 
-#ifndef NANO_TINY
     /* Handle a pending SIGWINCH again. */
     allow_pending_sigwinch(TRUE);
-#endif
 
     return NULL;
 }
@@ -2868,11 +2782,8 @@ void do_spell(void)
     }
 
     status =
-#ifndef NANO_TINY
 	openfile->mark_set ? write_marked_file(temp, temp_file, TRUE,
-	OVERWRITE) :
-#endif
-	write_file(temp, temp_file, TRUE, OVERWRITE, FALSE);
+	OVERWRITE) : write_file(temp, temp_file, TRUE, OVERWRITE, FALSE);
 
     if (!status) {
 	statusbar(_("Error writing temp file: %s"), strerror(errno));
@@ -3139,7 +3050,6 @@ void do_linter(void)
 	    tmpcol = curlint->colno;
 
 	if (tmplint != curlint) {
-#ifndef NANO_TINY
 	    struct stat lintfileinfo;
 
 	    new_lint_loop:
@@ -3180,7 +3090,7 @@ void do_linter(void)
 			openfile = tmpof;
 		}
 	    }
-#endif /* !NANO_TINY */
+
 	    do_gotolinecolumn(curlint->lineno, tmpcol, FALSE, FALSE, FALSE, FALSE);
 	    titlebar(NULL);
 	    edit_refresh();
@@ -3210,9 +3120,8 @@ void do_linter(void)
 	}
     }
     blank_statusbar();
-#ifndef NANO_TINY
+
 free_lints_and_return:
-#endif
     for (tmplint = lints; tmplint != NULL; tmplint = tmplint->next) {
 	free(tmplint->msg);
 	free(tmplint->filename);
@@ -3309,11 +3218,9 @@ void do_formatter(void)
 	return;
     }
 
-#ifndef NANO_TINY
     /* Don't handle a pending SIGWINCH until the alternate format checker
      * is finished and we've loaded the format-checked file back in. */
     allow_pending_sigwinch(FALSE);
-#endif
 
     /* Wait for the formatter to finish. */
     wait(&format_status);
@@ -3349,10 +3256,8 @@ void do_formatter(void)
 	do_gotopos(lineno_save, current_x_save, current_y_save, pww_save);
 	set_modified();
 
-#ifndef NANO_TINY
 	/* Handle a pending SIGWINCH again. */
 	allow_pending_sigwinch(TRUE);
-#endif
 
 	finalstatus = _("Finished formatting");
     }
@@ -3369,7 +3274,6 @@ void do_formatter(void)
 #endif /* !DISABLE_SPELLER */
 #endif /* !DISABLE_COLOR */
 
-#ifndef NANO_TINY
 /* Our own version of "wc".  Note that its character counts are in
  * multibyte characters instead of single-byte characters. */
 void do_wordlinechar_count(void)
@@ -3434,7 +3338,6 @@ void do_wordlinechar_count(void)
 	_("In Selection:  ") : "", (unsigned long)words, (long)nlines,
 	(unsigned long)chars);
 }
-#endif /* !NANO_TINY */
 
 /* Get verbatim input. */
 void do_verbatim_input(void)

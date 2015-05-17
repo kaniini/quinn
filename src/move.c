@@ -55,30 +55,22 @@ void do_page_up(void)
     /* If there's less than a page of text left on the screen, put the
      * cursor at the beginning of the first line of the file, and then
      * update the edit window. */
-    if (openfile->current->lineno == 1 || (
-#ifndef NANO_TINY
-	!ISSET(SOFTWRAP) &&
-#endif
-	openfile->current->lineno <= editwinrows - 2)) {
+    if (openfile->current->lineno == 1 || (!ISSET(SOFTWRAP) && openfile->current->lineno <= editwinrows - 2)) {
 	do_first_line();
 	return;
     }
 
     /* If we're not in smooth scrolling mode, put the cursor at the
      * beginning of the top line of the edit window, as Pico does. */
-#ifndef NANO_TINY
     if (!ISSET(SMOOTH_SCROLL)) {
-#endif
 	openfile->current = openfile->edittop;
 	openfile->placewewant = openfile->current_y = 0;
-#ifndef NANO_TINY
     }
-#endif
 
     for (i = editwinrows - 2; i - skipped > 0 && openfile->current !=
 	openfile->fileage; i--) {
 	openfile->current = openfile->current->prev;
-#ifndef NANO_TINY
+
 	if (ISSET(SOFTWRAP) && openfile->current) {
 	    skipped += strlenpt(openfile->current->data) / COLS;
 #ifdef DEBUG
@@ -86,7 +78,6 @@ void do_page_up(void)
 			i, skipped, (long)openfile->current->lineno, (unsigned long)strlenpt(openfile->current->data));
 #endif
 	}
-#endif
     }
 
     openfile->current_x = actual_x(openfile->current->data,
@@ -117,14 +108,10 @@ void do_page_down(void)
 
     /* If we're not in smooth scrolling mode, put the cursor at the
      * beginning of the top line of the edit window, as Pico does. */
-#ifndef NANO_TINY
     if (!ISSET(SMOOTH_SCROLL)) {
-#endif
 	openfile->current = openfile->edittop;
 	openfile->placewewant = openfile->current_y = 0;
-#ifndef NANO_TINY
     }
-#endif
 
     for (i = maxrows - 2; i > 0 && openfile->current !=
 	openfile->filebot; i--) {
@@ -216,7 +203,6 @@ void do_para_end_void(void)
 }
 #endif /* !DISABLE_JUSTIFY */
 
-#ifndef NANO_TINY
 /* Move to the next word in the file.  If allow_punct is TRUE, treat
  * punctuation as part of a word.  If allow_update is TRUE, update the
  * screen afterwards.  Return TRUE if we started on a word, and FALSE
@@ -442,7 +428,6 @@ void do_prev_word_void(void)
 {
     do_prev_word(ISSET(WORD_BOUNDS), TRUE);
 }
-#endif /* !NANO_TINY */
 
 /* Move to the beginning of the current line.  If the SMART_HOME flag is
  * set, move to the first non-whitespace character of the current line
@@ -452,7 +437,6 @@ void do_home(void)
 {
     size_t pww_save = openfile->placewewant;
 
-#ifndef NANO_TINY
     if (ISSET(SMART_HOME)) {
 	size_t current_x_save = openfile->current_x;
 
@@ -464,12 +448,9 @@ void do_home(void)
 
 	openfile->placewewant = xplustabs();
     } else {
-#endif
 	openfile->current_x = 0;
 	openfile->placewewant = 0;
-#ifndef NANO_TINY
     }
-#endif
 
     if (need_horizontal_update(pww_save))
 	update_line(openfile->current, openfile->current_x);
@@ -489,21 +470,12 @@ void do_end(void)
 
 /* If scroll_only is FALSE, move up one line.  If scroll_only is TRUE,
  * scroll up one line without scrolling the cursor. */
-void do_up(
-#ifndef NANO_TINY
-	bool scroll_only
-#else
-	void
-#endif
-	)
+void do_up(bool scroll_only)
 {
     /* If we're at the top of the file, or if scroll_only is TRUE and
      * the top of the file is onscreen, get out. */
     if (openfile->current == openfile->fileage
-#ifndef NANO_TINY
-	|| (scroll_only && openfile->edittop == openfile->fileage)
-#endif
-	)
+	|| (scroll_only && openfile->edittop == openfile->fileage))
 	return;
 
     assert(ISSET(SOFTWRAP) || openfile->current_y == openfile->current->lineno - openfile->edittop->lineno);
@@ -519,15 +491,8 @@ void do_up(
      * scroll_only is TRUE, scroll the edit window up one line
      * unconditionally. */
     if (openfile->current_y == 0
-#ifndef NANO_TINY
-	|| (ISSET(SOFTWRAP) && openfile->edittop->lineno == openfile->current->next->lineno) || scroll_only
-#endif
-	)
-	edit_scroll(UPWARD,
-#ifndef NANO_TINY
-		(ISSET(SMOOTH_SCROLL) || scroll_only) ? 1 :
-#endif
-		editwinrows / 2 + 1);
+	|| (ISSET(SOFTWRAP) && openfile->edittop->lineno == openfile->current->next->lineno) || scroll_only)
+	edit_scroll(UPWARD, (ISSET(SMOOTH_SCROLL) || scroll_only) ? 1 : editwinrows / 2 + 1);
 
     /* If we're below the first line of the edit window, update the
      * line we were on before and the line we're on now.  The former
@@ -543,35 +508,21 @@ void do_up(
 /* Move up one line. */
 void do_up_void(void)
 {
-    do_up(
-#ifndef NANO_TINY
-	FALSE
-#endif
-	);
+    do_up(FALSE);
 }
 
-#ifndef NANO_TINY
 /* Scroll up one line without scrolling the cursor. */
 void do_scroll_up(void)
 {
     do_up(TRUE);
 }
-#endif
 
 /* If scroll_only is FALSE, move down one line.  If scroll_only is TRUE,
  * scroll down one line without scrolling the cursor. */
-void do_down(
-#ifndef NANO_TINY
-	bool scroll_only
-#else
-	void
-#endif
-	)
+void do_down(bool scroll_only)
 {
-#ifndef NANO_TINY
     int amount = 0, enough;
     filestruct *topline;
-#endif
 
     /* If we're at the bottom of the file, get out. */
     if (openfile->current == openfile->filebot || !openfile->current->next)
@@ -584,7 +535,6 @@ void do_down(
     openfile->current_x = actual_x(openfile->current->data,
 	openfile->placewewant);
 
-#ifndef NANO_TINY
     if (ISSET(SOFTWRAP)) {
 	/* Compute the amount to scroll. */
 	amount = (strlenpt(openfile->current->data) / COLS + openfile->current_y + 2
@@ -600,38 +550,24 @@ void do_down(
 	    topline = topline->next;
 	}
     }
-#endif
 
     /* If scroll_only is FALSE and if we're on the last line of the
      * edit window, scroll the edit window down one line if we're in
      * smooth scrolling mode, or down half a page if we're not.  If
      * scroll_only is TRUE, scroll the edit window down one line
      * unconditionally. */
-    if (openfile->current_y == editwinrows - 1
-#ifndef NANO_TINY
-	|| amount > 0 || scroll_only
-#endif
-	) {
-#ifndef NANO_TINY
+    if (openfile->current_y == editwinrows - 1 || amount > 0 || scroll_only) {
 	if (amount < 1 || scroll_only)
 	    amount = 1;
-#endif
-	edit_scroll(DOWNWARD,
-#ifndef NANO_TINY
-		(ISSET(SMOOTH_SCROLL) || scroll_only) ? amount :
-#endif
-		editwinrows / 2 + 1);
+	edit_scroll(DOWNWARD, (ISSET(SMOOTH_SCROLL) || scroll_only) ? amount : editwinrows / 2 + 1);
 	edit_refresh_needed = TRUE;
     }
+
     /* If we're above the last line of the edit window, update the line
      * we were on before and the line we're on now.  The former needs to
      * be redrawn if we're not on the first page, and the latter needs
      * to be drawn unconditionally. */
-    if (openfile->current_y < editwinrows - 1
-#ifndef NANO_TINY
-	|| ISSET(SOFTWRAP)
-#endif
-	) {
+    if (openfile->current_y < editwinrows - 1 || ISSET(SOFTWRAP)) {
 	if (need_vertical_update(0))
 	    update_line(openfile->current->prev, 0);
 	update_line(openfile->current, openfile->current_x);
@@ -641,20 +577,14 @@ void do_down(
 /* Move down one line. */
 void do_down_void(void)
 {
-    do_down(
-#ifndef NANO_TINY
-	FALSE
-#endif
-	);
+    do_down(FALSE);
 }
 
-#ifndef NANO_TINY
 /* Scroll down one line without scrolling the cursor. */
 void do_scroll_down(void)
 {
     do_down(TRUE);
 }
-#endif
 
 /* Move left one character. */
 void do_left(void)

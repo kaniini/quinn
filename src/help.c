@@ -187,12 +187,10 @@ void help_init(void)
     const sc *s;
     int scsfound = 0;
 
-#ifndef NANO_TINY
 #ifndef DISABLE_NANORC
     bool old_whitespace = ISSET(WHITESPACE_DISPLAY);
 
     UNSET(WHITESPACE_DISPLAY);
-#endif
 #endif
 
     /* First, set up the initial help text for the current function. */
@@ -302,7 +300,6 @@ void help_init(void)
 	htx[2] = NULL;
     }
 #endif /* !DISABLE_SPELLER */
-#ifndef NANO_TINY
     else if (currmenu == MEXTCMD) {
 	htx[0] = N_("Execute Command Help Text\n\n "
 		"This mode allows you to insert the output of a "
@@ -314,7 +311,6 @@ void help_init(void)
 	htx[1] = NULL;
 	htx[2] = NULL;
     }
-#endif /* !NANO_TINY */
     else {
 	/* Default to the main help list. */
 	htx[0] = N_("Main nano help text\n\n "
@@ -363,7 +359,6 @@ void help_init(void)
 	    if (f->menus & currmenu)
 		allocsize += (16 * mb_cur_max()) + strlen(f->help) + 2;
 
-#ifndef NANO_TINY
     /* If we're on the main list, we also count the toggle help text.
      * Each entry has "M-%c\t\t", five chars which fill 16 columns,
      * plus a space, plus translated text, plus one or two '\n's. */
@@ -374,7 +369,6 @@ void help_init(void)
 	    if (s->scfunc == do_toggle_void)
 		allocsize += strlen(_(flagtostr(s->toggle))) + endis_len + 8;
     }
-#endif
 
     /* help_text has been freed and set to NULL unless the user resized
      * while in the help screen. */
@@ -434,7 +428,6 @@ void help_init(void)
 	    ptr += sprintf(ptr, "\n");
     }
 
-#ifndef NANO_TINY
     /* And the toggles... */
     if (currmenu == MMAIN)
 	for (s = sclist; s != NULL; s = s->next) {
@@ -449,7 +442,6 @@ void help_init(void)
     if (old_whitespace)
 	SET(WHITESPACE_DISPLAY);
 #endif
-#endif /* !NANO_TINY */
 
     /* If all went well, we didn't overwrite the allocated space for
      * help_text. */

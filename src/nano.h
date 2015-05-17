@@ -116,9 +116,7 @@
 #ifdef HAVE_REGEX_H
 #include <regex.h>
 #endif
-#ifndef NANO_TINY
 #include <setjmp.h>
-#endif
 #include <assert.h>
 
 /* If no vsnprintf(), use the version from glib 2.x. */
@@ -325,7 +323,6 @@ typedef struct partition {
 	 * the file. */
 } partition;
 
-#ifndef NANO_TINY
 typedef struct undo {
     ssize_t lineno;
     undo_type type;
@@ -350,7 +347,6 @@ typedef struct undo {
 	/* Another shadow variable. */
     struct undo *next;
 } undo;
-#endif /* !NANO_TINY */
 
 #ifndef DISABLE_HISTORIES
 typedef struct poshiststruct {
@@ -385,7 +381,6 @@ typedef struct openfilestruct {
 	/* The current file's y-coordinate position. */
     bool modified;
 	/* Whether the current file has been modified. */
-#ifndef NANO_TINY
     bool mark_set;
 	/* Whether the mark is on in the current file. */
     filestruct *mark_begin;
@@ -404,7 +399,6 @@ typedef struct openfilestruct {
     undo_type last_action;
     const char *lock_filename;
 	/* The path of the lockfile, if we created one. */
-#endif
 #ifndef DISABLE_COLOR
     syntaxtype *syntax;
 	/* The  syntax struct for this file, if any. */
@@ -570,13 +564,11 @@ enum
 #define CONTROL_LEFT 539
 #define CONTROL_RIGHT 554
 
-#ifndef NANO_TINY
 /* Extra bits for the undo function. */
 #define UNdel_del		(1<<0)
 #define UNdel_backspace		(1<<1)
 #define UNcut_marked_forward	(1<<2)
 #define UNcut_cutline		(1<<3)
-#endif /* !NANO_TINY */
 
 /* The maximum number of entries displayed in the main shortcut list. */
 #define MAIN_VISIBLE (((COLS + 40) / 20) * 2)

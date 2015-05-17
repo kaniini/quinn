@@ -69,7 +69,6 @@ void initialize_buffer(void)
     openfile->current_y = 0;
 
     openfile->modified = FALSE;
-#ifndef NANO_TINY
     openfile->mark_set = FALSE;
 
     openfile->mark_begin = NULL;
@@ -81,7 +80,6 @@ void initialize_buffer(void)
     openfile->undotop = NULL;
     openfile->current_undo = NULL;
     openfile->lock_filename = NULL;
-#endif
 #ifndef DISABLE_COLOR
     openfile->colorstrings = NULL;
 #endif
@@ -107,7 +105,6 @@ void initialize_buffer_text(void)
     openfile->totsize = 0;
 }
 
-#ifndef NANO_TINY
 /* Actually write the lockfile.  This function will ALWAYS annihilate
  * any previous version of the file.  We'll borrow INSECURE_BACKUP here
  * to decide about lockfile paranoia here as well...
@@ -314,7 +311,6 @@ int do_lockfile(const char *filename)
 
     return write_lockfile(lockfilename, filename, FALSE);
 }
-#endif /* !NANO_TINY */
 
 /* If it's not "", filename is a file to open.  We make a new buffer, if
  * necessary, and then open and read the file, if applicable. */
@@ -347,7 +343,6 @@ void open_buffer(const char *filename, bool undoable)
     if (new_buffer) {
 	make_new_buffer();
 
-#ifndef NANO_TINY
 	if (ISSET(LOCKING) && filename[0] != '\0') {
 	    int lockstatus = do_lockfile(filename);
 	    if (lockstatus < 0) {
@@ -361,7 +356,6 @@ void open_buffer(const char *filename, bool undoable)
 		quiet = TRUE;
 	    }
  	}
-#endif
     }
 
 
@@ -379,13 +373,11 @@ void open_buffer(const char *filename, bool undoable)
      * no stat, update the stat, if applicable. */
     if (rc > 0) {
 	read_file(f, rc, filename, undoable, new_buffer);
-#ifndef NANO_TINY
 	if (openfile->current_stat == NULL) {
 	    openfile->current_stat =
 		(struct stat *)nmalloc(sizeof(struct stat));
 	    stat(filename, openfile->current_stat);
 	}
-#endif
     }
 
     /* If we have a file, and we're loading into a new buffer, move back
@@ -590,12 +582,10 @@ filestruct *read_line(char *buf, filestruct *prevnode, bool
 
     fileptr->data = mallocstrcpy(NULL, buf);
 
-#ifndef NANO_TINY
     /* If it's a DOS file ("\r\n"), and file conversion isn't disabled,
      * strip the '\r' part from fileptr->data. */
     if (!ISSET(NO_CONVERT) && buf_len > 0 && buf[buf_len - 1] == '\r')
 	fileptr->data[buf_len - 1] = '\0';
-#endif
 
 #ifndef DISABLE_COLOR
 	fileptr->multidata = NULL;
@@ -656,20 +646,16 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	 * character or EOF. */
     bool writable = TRUE;
 	/* Is the file writable (if we care) */
-#ifndef NANO_TINY
     int format = 0;
 	/* 0 = *nix, 1 = DOS, 2 = Mac, 3 = both DOS and Mac. */
-#endif
 
     assert(openfile->fileage != NULL && openfile->current != NULL);
 
     buf = charalloc(bufx);
     buf[0] = '\0';
 
-#ifndef NANO_TINY
     if (undoable)
 	add_undo(INSERT);
-#endif
 
     if (openfile->current == openfile->fileage)
 	first_line_ins = TRUE;
@@ -683,7 +669,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	/* If it's a *nix file ("\n") or a DOS file ("\r\n"), and file
 	 * conversion isn't disabled, handle it! */
 	if (input == '\n') {
-#ifndef NANO_TINY
 	    /* If it's a DOS file or a DOS/Mac file ('\r' before '\n' on
 	     * the first line if we think it's a *nix file, or on any
 	     * line otherwise), and file conversion isn't disabled,
@@ -693,7 +678,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 		if (format == 0 || format == 2)
 		    format++;
 	    }
-#endif
 
 	    /* Read in the line properly. */
 	    fileptr = read_line(buf, fileptr, &first_line_ins, len);
@@ -705,7 +689,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	    num_lines++;
 	    buf[0] = '\0';
 	    i = 0;
-#ifndef NANO_TINY
 	/* If it's a Mac file ('\r' without '\n' on the first line if we
 	 * think it's a *nix file, or on any line otherwise), and file
 	 * conversion isn't disabled, handle it! */
@@ -729,7 +712,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	    buf[0] = input;
 	    buf[1] = '\0';
 	    i = 1;
-#endif
 	} else {
 	    /* Calculate the total length of the line.  It might have
 	     * nulls in it, so we can't just use strlen() here. */
@@ -760,7 +742,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	writable = is_file_writable(filename);
     }
 
-#ifndef NANO_TINY
     /* If file conversion isn't disabled and the last character in this
      * file is '\r', read it in properly as a Mac format line. */
     if (len == 0 && !ISSET(NO_CONVERT) && input == '\r') {
@@ -769,11 +750,9 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	buf[0] = input;
 	buf[1] = '\0';
     }
-#endif
 
     /* Did we not get a newline and still have stuff to do? */
     if (len > 0) {
-#ifndef NANO_TINY
 	/* If file conversion isn't disabled and the last character in
 	 * this file is '\r', set format to Mac if we currently think
 	 * the file is a *nix file, or to both DOS and Mac if we
@@ -781,7 +760,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 	if (!ISSET(NO_CONVERT) && buf[len - 1] == '\r' &&
 		(format == 0 || format == 1))
 	    format += 2;
-#endif
 
 	/* Read in the last line properly. */
 	fileptr = read_line(buf, fileptr, &first_line_ins, len);
@@ -864,7 +842,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
      * file we inserted. */
     openfile->placewewant = xplustabs();
 
-#ifndef NANO_TINY
     if (undoable)
 	update_undo(INSERT);
 
@@ -900,7 +877,6 @@ void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkw
 		"Read %lu lines (Converted from DOS format - Warning: No write permission)",
 		(unsigned long)num_lines), (unsigned long)num_lines);
     } else
-#endif
 	if (writable)
 	    statusbar(P_("Read %lu line", "Read %lu lines",
 		(unsigned long)num_lines), (unsigned long)num_lines);
@@ -1029,13 +1005,7 @@ char *get_next_filename(const char *name, const char *suffix)
 /* Insert a file into a new buffer if the MULTIBUFFER flag is set, or
  * into the current buffer if it isn't.  If execute is TRUE, insert the
  * output of an executed command instead of a file. */
-void do_insertfile(
-#ifndef NANO_TINY
-	bool execute
-#else
-	void
-#endif
-	)
+void do_insertfile(bool execute)
 {
     int i;
     const char *msg;
@@ -1045,12 +1015,9 @@ void do_insertfile(
     size_t current_x_save = openfile->current_x;
     ssize_t current_y_save = openfile->current_y;
     bool edittop_inside = FALSE;
-#ifndef NANO_TINY
     bool right_side_up = FALSE, single_line = FALSE;
-#endif
 
     while (TRUE) {
-#ifndef NANO_TINY
 	if (execute) {
 	    msg =
 #ifndef DISABLE_MULTIBUFFER
@@ -1058,9 +1025,7 @@ void do_insertfile(
 		_("Command to execute in new buffer [from %s] ") :
 #endif
 		_("Command to execute [from %s] ");
-	} else
-#endif /* NANO_TINY */
-	{
+	} else {
 	    msg =
 #ifndef DISABLE_MULTIBUFFER
 		ISSET(MULTIBUFFER) ?
@@ -1073,9 +1038,7 @@ void do_insertfile(
 #ifndef DISABLE_TABCOMP
 		TRUE,
 #endif
-#ifndef NANO_TINY
 		execute ? MEXTCMD :
-#endif
 		MINSERTFILE, ans,
 #ifndef DISABLE_HISTORIES
 		NULL,
@@ -1104,7 +1067,6 @@ void do_insertfile(
 
 	    ans = mallocstrcpy(ans, answer);
 
-#ifndef NANO_TINY
 #ifndef DISABLE_MULTIBUFFER
 	    if (func == new_buffer_void) {
 		/* Don't allow toggling if we're in view mode. */
@@ -1119,7 +1081,6 @@ void do_insertfile(
 		execute = !execute;
 		continue;
 	    }
-#endif /* !NANO_TINY */
 
 #ifndef DISABLE_BROWSER
 	    if (func == to_files_void) {
@@ -1145,7 +1106,6 @@ void do_insertfile(
 		)
 		continue;
 
-#ifndef NANO_TINY
 	    /* Keep track of whether the mark begins inside the
 	     * partition and will need adjustment. */
 	    if (openfile->mark_set) {
@@ -1158,7 +1118,6 @@ void do_insertfile(
 
 		single_line = (top == bot);
 	    }
-#endif
 
 #ifndef DISABLE_MULTIBUFFER
 	    if (!ISSET(MULTIBUFFER)) {
@@ -1182,7 +1141,6 @@ void do_insertfile(
 	    sunder(answer);
 	    align(&answer);
 
-#ifndef NANO_TINY
 	    if (execute) {
 #ifndef DISABLE_MULTIBUFFER
 		if (ISSET(MULTIBUFFER))
@@ -1203,7 +1161,6 @@ void do_insertfile(
 		}
 #endif
 	    } else {
-#endif /* !NANO_TINY */
 		/* Make sure the path to the file specified in answer is
 		 * tilde-expanded. */
 		answer = mallocstrassn(answer,
@@ -1212,9 +1169,7 @@ void do_insertfile(
 		/* Save the file specified in answer in the current
 		 * buffer. */
 		open_buffer(answer, TRUE);
-#ifndef NANO_TINY
 	    }
-#endif
 
 #if !defined(DISABLE_MULTIBUFFER) && !defined(DISABLE_HISTORIES)
 	    if (ISSET(MULTIBUFFER)) {
@@ -1223,11 +1178,7 @@ void do_insertfile(
 		display_buffer();
 
 		ssize_t savedposline, savedposcol;
-		if (ISSET(POS_HISTORY) &&
-#ifndef NANO_TINY
-			!execute &&
-#endif
-			check_poshistory(answer, &savedposline, &savedposcol))
+		if (ISSET(POS_HISTORY) && !execute && check_poshistory(answer, &savedposline, &savedposcol))
 		    do_gotolinecolumn(savedposline, savedposcol, FALSE, FALSE, FALSE, FALSE);
 	    } else
 #endif
@@ -1247,17 +1198,14 @@ void do_insertfile(
 		 * current line. */
 		openfile->current_x = strlen(openfile->filebot->data);
 		if (openfile->fileage == openfile->filebot) {
-#ifndef NANO_TINY
 		    if (openfile->mark_set) {
 			openfile->mark_begin = openfile->current;
 			if (!right_side_up)
 			    openfile->mark_begin_x +=
 				openfile->current_x;
 		    }
-#endif
 		    openfile->current_x += current_x_save;
 		}
-#ifndef NANO_TINY
 		else if (openfile->mark_set) {
 		    if (!right_side_up) {
 			if (single_line) {
@@ -1268,7 +1216,6 @@ void do_insertfile(
 				openfile->current_x;
 		    }
 		}
-#endif
 
 		/* Update the current y-coordinate to account for the
 		 * number of lines inserted. */
@@ -1318,11 +1265,7 @@ void do_insertfile_void(void)
 	statusbar(_("Key invalid in non-multibuffer mode"));
     else
 #endif
-	do_insertfile(
-#ifndef NANO_TINY
-		FALSE
-#endif
-		);
+	do_insertfile(FALSE);
 
     display_main_list();
 }
@@ -1606,7 +1549,6 @@ bool check_operating_dir(const char *currpath, bool allow_tabcomp)
 }
 #endif
 
-#ifndef NANO_TINY
 /* Although this sucks, it sucks less than having a single 'my system is
  * messed up and I'm blanket allowing insecure file writing operations'. */
 int prompt_failed_backupwrite(const char *filename)
@@ -1644,7 +1586,6 @@ void init_backup_dir(void)
 	backup_dir = full_backup_dir;
     }
 }
-#endif /* !NANO_TINY */
 
 /* Read from inn, write to out.  We assume inn is opened for reading,
  * and out for writing.  We return 0 on success, -1 on read error, or -2
@@ -1704,14 +1645,12 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	/* The file descriptor we use. */
     mode_t original_umask = 0;
 	/* Our umask, from when nano started. */
-#ifndef NANO_TINY
     bool realexists;
 	/* The result of stat().  TRUE if the file exists, FALSE
 	 * otherwise.  If name is a link that points nowhere, realexists
 	 * is FALSE. */
     struct stat st;
 	/* The status fields filled in by stat(). */
-#endif
     bool anyexists;
 	/* The result of lstat().  The same as realexists, unless name
 	 * is a link. */
@@ -1760,7 +1699,6 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	goto cleanup_and_exit;
     }
 
-#ifndef NANO_TINY
     /* Check whether the file (at the end of the symlink) exists. */
     realexists = (stat(realname, &st) != -1);
 
@@ -1946,8 +1884,7 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	free(backupname);
     }
 
-    skip_backup:
-#endif /* !NANO_TINY */
+  skip_backup:
 
     /* If NOFOLLOW_SYMLINKS is set and the file is a link, we aren't
      * doing prepend or append.  So we delete the link first, and just
@@ -2080,7 +2017,6 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	    if (fileptr->data[0] == '\0')
 		lineswritten--;
 	} else {
-#ifndef NANO_TINY
 	    if (openfile->fmt == DOS_FILE || openfile->fmt ==
 		MAC_FILE) {
 		if (putc('\r', f) == EOF) {
@@ -2092,16 +2028,13 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	    }
 
 	    if (openfile->fmt != MAC_FILE) {
-#endif
 		if (putc('\n', f) == EOF) {
 		    statusbar(_("Error writing %s: %s"), realname,
 			strerror(errno));
 		    fclose(f);
 		    goto cleanup_and_exit;
 		}
-#ifndef NANO_TINY
 	    }
-#endif
 	}
 
 	fileptr = fileptr->next;
@@ -2159,14 +2092,12 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 #endif
 	}
 
-#ifndef NANO_TINY
 	/* Update current_stat to reference the file as it is now. */
 	if (openfile->current_stat == NULL)
 	    openfile->current_stat =
 		(struct stat *)nmalloc(sizeof(struct stat));
 	if (!openfile->mark_set)
 	    stat(realname, openfile->current_stat);
-#endif
 
 	statusbar(P_("Wrote %lu line", "Wrote %lu lines",
 		(unsigned long)lineswritten),
@@ -2185,7 +2116,6 @@ bool write_file(const char *name, FILE *f_open, bool tmp, append_type
     return retval;
 }
 
-#ifndef NANO_TINY
 /* Write a marked selection from a file out to disk.  Return TRUE on
  * success or FALSE on error. */
 bool write_marked_file(const char *name, FILE *f_open, bool tmp,
@@ -2232,8 +2162,6 @@ bool write_marked_file(const char *name, FILE *f_open, bool tmp,
     return retval;
 }
 
-#endif /* !NANO_TINY */
-
 /* Write the current file to disk.  If the mark is on, write the current
  * marked selection to disk.  If exiting is TRUE, write the file to disk
  * regardless of whether the mark is on, and without prompting if the
@@ -2260,14 +2188,11 @@ bool do_writeout(bool exiting)
     }
 
     ans = mallocstrcpy(NULL,
-#ifndef NANO_TINY
 	(!exiting && openfile->mark_set) ? "" :
-#endif
 	openfile->filename);
 
     while (TRUE) {
 	const char *msg;
-#ifndef NANO_TINY
 	const char *formatstr, *backupstr;
 
 	formatstr = (openfile->fmt == DOS_FILE) ?
@@ -2286,7 +2211,6 @@ bool do_writeout(bool exiting)
 		_("Append Selection to File") :
 		_("Write Selection to File");
 	else
-#endif /* !NANO_TINY */
 	    msg = (append == PREPEND) ? _("File Name to Prepend to") :
 		(append == APPEND) ? _("File Name to Append to") :
 		_("File Name to Write");
@@ -2304,12 +2228,7 @@ bool do_writeout(bool exiting)
 		NULL,
 #endif
 		edit_refresh, "%s%s%s", msg,
-#ifndef NANO_TINY
-		formatstr, backupstr
-#else
-		"", ""
-#endif
-		);
+		formatstr, backupstr);
 
 	/* If the filename or command begins with a newline (i.e. an
 	 * encoded null), treat it as though it's blank. */
@@ -2334,7 +2253,6 @@ bool do_writeout(bool exiting)
 		answer = tmp;
 	    } else
 #endif /* !DISABLE_BROWSER */
-#ifndef NANO_TINY
 	    if (func == dos_format_void) {
 		openfile->fmt = (openfile->fmt == DOS_FILE) ? NIX_FILE :
 			DOS_FILE;
@@ -2347,7 +2265,6 @@ bool do_writeout(bool exiting)
 		TOGGLE(BACKUP_FILE);
 		continue;
 	    } else
-#endif /* !NANO_TINY */
 	    if (func == prepend_void) {
 		append = (append == PREPEND) ? OVERWRITE : PREPEND;
 		continue;
@@ -2423,18 +2340,14 @@ bool do_writeout(bool exiting)
 				_("File exists, OVERWRITE ? "));
 			if (i == 0 || i == -1)
 			    continue;
-		    } else
-#ifndef NANO_TINY
-		    if (exiting || !openfile->mark_set)
-#endif
-		    {
+		    } else if (exiting || !openfile->mark_set) {
 			i = do_yesno_prompt(FALSE,
 				_("Save file under DIFFERENT NAME ? "));
 			if (i == 0 || i == -1)
 			    continue;
 		    }
 		}
-#ifndef NANO_TINY
+
 		/* Complain if the file exists, the name hasn't changed,
 		 * and the stat information we had before does not match
 		 * what we have now. */
@@ -2447,8 +2360,6 @@ bool do_writeout(bool exiting)
 		    if (i == 0 || i == -1)
 			continue;
 		}
-#endif
-
 	    }
 
 	    /* Convert newlines to nulls, just before we save the
@@ -2461,10 +2372,8 @@ bool do_writeout(bool exiting)
 	     * function is disabled, since it allows reading from or
 	     * writing to files not specified on the command line. */
 	    retval =
-#ifndef NANO_TINY
 		(!ISSET(RESTRICTED) && !exiting && openfile->mark_set) ?
 		write_marked_file(answer, NULL, FALSE, append) :
-#endif
 		write_file(answer, NULL, FALSE, append, FALSE);
 
 	    break;

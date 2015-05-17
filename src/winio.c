@@ -106,9 +106,7 @@ void get_key_buffer(WINDOW *win)
     if (key_buffer != NULL)
 	return;
 
-#ifndef NANO_TINY
     allow_pending_sigwinch(TRUE);
-#endif
 
     /* Just before reading in the first character, display any pending
      * screen updates. */
@@ -132,9 +130,7 @@ void get_key_buffer(WINDOW *win)
 		handle_hupterm(0);
 	}
 
-#ifndef NANO_TINY
     allow_pending_sigwinch(FALSE);
-#endif
 
     /* Increment the length of the keystroke buffer, and save the value
      * of the keystroke at the end of it. */
@@ -146,9 +142,7 @@ void get_key_buffer(WINDOW *win)
     nodelay(win, TRUE);
 
     while (TRUE) {
-#ifndef NANO_TINY
 	allow_pending_sigwinch(TRUE);
-#endif
 
 	input = wgetch(win);
 
@@ -163,9 +157,7 @@ void get_key_buffer(WINDOW *win)
 		sizeof(int));
 	key_buffer[key_buffer_len - 1] = input;
 
-#ifndef NANO_TINY
 	allow_pending_sigwinch(FALSE);
-#endif
     }
 
     /* Switch back to waiting mode for input. */
@@ -185,10 +177,8 @@ size_t get_key_buffer_len(void)
 /* Add the keystrokes in input to the keystroke buffer. */
 void unget_input(int *input, size_t input_len)
 {
-#ifndef NANO_TINY
     allow_pending_sigwinch(TRUE);
     allow_pending_sigwinch(FALSE);
-#endif
 
     /* If input is empty, get out. */
     if (input_len == 0)
@@ -243,10 +233,8 @@ int *get_input(WINDOW *win, size_t input_len)
 {
     int *input;
 
-#ifndef NANO_TINY
     allow_pending_sigwinch(TRUE);
     allow_pending_sigwinch(FALSE);
-#endif
 
     if (key_buffer_len == 0) {
 	if (win != NULL) {
@@ -613,24 +601,16 @@ int parse_kbinput(WINDOW *win)
 		retval = ERR;
 		break;
 #endif
-#if !defined(NANO_TINY) && defined(KEY_RESIZE)
-	    /* Since we don't change the default SIGWINCH handler when
-	     * NANO_TINY is defined, KEY_RESIZE is never generated.
-	     * Also, Slang and SunOS 5.7-5.9 don't support
-	     * KEY_RESIZE. */
+#ifdef KEY_RESIZE
 	    case KEY_RESIZE:
 		retval = ERR;
 		break;
 #endif
 	    case CONTROL_LEFT:
-#ifndef NANO_TINY
 		retval = sc_seq_or(do_prev_word_void, 0);
-#endif
 		break;
 	    case CONTROL_RIGHT:
-#ifndef NANO_TINY
 		retval = sc_seq_or(do_next_word_void, 0);
-#endif
 		break;
 	}
 
@@ -1966,7 +1946,7 @@ char *display_string(const char *buf, size_t start_col, size_t len, bool
 
 	/* If buf contains a tab character, interpret it. */
 	if (*buf_mb == '\t') {
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
 	    if (ISSET(WHITESPACE_DISPLAY)) {
 		int i;
 
@@ -2001,7 +1981,7 @@ char *display_string(const char *buf, size_t start_col, size_t len, bool
 	    free(ctrl_buf_mb);
 	/* If buf contains a space character, interpret it. */
 	} else if (*buf_mb == ' ') {
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
 	    if (ISSET(WHITESPACE_DISPLAY)) {
 		int i;
 
@@ -2058,7 +2038,6 @@ void set_modified(void)
     if (!openfile->modified) {
 	openfile->modified = TRUE;
 	titlebar(NULL);
-#ifndef NANO_TINY
 	if (ISSET(LOCKING)) {
 	    if (openfile->filename[0] == '\0')
 		return;
@@ -2070,7 +2049,6 @@ void set_modified(void)
 				get_full_path(openfile->filename), TRUE);
 	    }
 	}
-#endif
     }
 }
 
@@ -2082,7 +2060,7 @@ void statusbar(const char *msg, ...)
     va_list ap;
     char *bar, *foo;
     size_t start_x;
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
     bool old_whitespace;
 #endif
 
@@ -2098,7 +2076,7 @@ void statusbar(const char *msg, ...)
 
     blank_statusbar();
 
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
     old_whitespace = ISSET(WHITESPACE_DISPLAY);
     UNSET(WHITESPACE_DISPLAY);
 #endif
@@ -2107,7 +2085,7 @@ void statusbar(const char *msg, ...)
     va_end(ap);
     foo = display_string(bar, 0, COLS - 4, FALSE);
     free(bar);
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
     if (old_whitespace)
 	SET(WHITESPACE_DISPLAY);
 #endif
@@ -2245,7 +2223,6 @@ void reset_cursor(void)
 
     xpt = xplustabs();
 
-#ifndef NANO_TINY
     if (ISSET(SOFTWRAP)) {
 	filestruct *tmp;
 	openfile->current_y = 0;
@@ -2256,9 +2233,8 @@ void reset_cursor(void)
 	openfile->current_y += xplustabs() / COLS;
 	if (openfile->current_y < editwinrows)
 	    wmove(edit, openfile->current_y, xpt % COLS);
-    } else
-#endif
-    {
+    }
+    else {
 	openfile->current_y = openfile->current->lineno -
 	    openfile->edittop->lineno;
 
@@ -2278,7 +2254,6 @@ void reset_cursor(void)
 void edit_draw(filestruct *fileptr, const char *converted, int
 	line, size_t start)
 {
-#if !defined(NANO_TINY) || !defined(DISABLE_COLOR)
     size_t startpos = actual_x(fileptr->data, start);
 	/* The position in fileptr->data of the leftmost character
 	 * that displays at least partially on the window. */
@@ -2288,7 +2263,6 @@ void edit_draw(filestruct *fileptr, const char *converted, int
 	 *
 	 * Note that endpos might be beyond the null terminator of the
 	 * string. */
-#endif
 
     assert(openfile != NULL && fileptr != NULL && converted != NULL);
     assert(strlenpt(converted) <= COLS);
@@ -2574,7 +2548,6 @@ void edit_draw(filestruct *fileptr, const char *converted, int
     }
 #endif /* !DISABLE_COLOR */
 
-#ifndef NANO_TINY
     /* If the mark is on, we need to display it. */
     if (openfile->mark_set && (fileptr->lineno <=
 	openfile->mark_begin->lineno || fileptr->lineno <=
@@ -2643,7 +2616,6 @@ void edit_draw(filestruct *fileptr, const char *converted, int
 	    wattroff(edit, hilite_attribute);
 	}
     }
-#endif /* !NANO_TINY */
 }
 
 /* Just update one line in the edit buffer.  This is basically a wrapper
@@ -2662,14 +2634,12 @@ int update_line(filestruct *fileptr, size_t index)
 
     assert(fileptr != NULL);
 
-#ifndef NANO_TINY
     if (ISSET(SOFTWRAP)) {
 	filestruct *tmp;
 
 	for (tmp = openfile->edittop; tmp && tmp != fileptr; tmp = tmp->next)
 	    line += (strlenpt(tmp->data) / COLS) + 1;
     } else
-#endif
 	line = fileptr->lineno - openfile->edittop->lineno;
 
     if (line < 0 || line >= editwinrows)
@@ -2680,38 +2650,29 @@ int update_line(filestruct *fileptr, size_t index)
 
     /* Next, convert variables that index the line to their equivalent
      * positions in the expanded line. */
-#ifndef NANO_TINY
     if (ISSET(SOFTWRAP))
 	index = 0;
     else
-#endif
 	index = strnlenpt(fileptr->data, index);
     page_start = get_page_start(index);
 
     /* Expand the line, replacing tabs with spaces, and control
      * characters with their displayed forms. */
-#ifdef NANO_TINY
-    converted = display_string(fileptr->data, page_start, COLS, TRUE);
-#else
     converted = display_string(fileptr->data, page_start, COLS, !ISSET(SOFTWRAP));
 #ifdef DEBUG
     if (ISSET(SOFTWRAP) && strlen(converted) >= COLS - 2)
 	fprintf(stderr, "update_line(): converted(1) line = %s\n", converted);
 #endif
-#endif /* !NANO_TINY */
 
     /* Paint the line. */
     edit_draw(fileptr, converted, line, page_start);
     free(converted);
 
-#ifndef NANO_TINY
     if (!ISSET(SOFTWRAP)) {
-#endif
 	if (page_start > 0)
 	    mvwaddch(edit, line, 0, '$');
 	if (strlenpt(fileptr->data) > page_start + COLS)
 	    mvwaddch(edit, line, COLS - 1, '$');
-#ifndef NANO_TINY
     } else {
 	size_t full_length = strlenpt(fileptr->data);
 	for (index += COLS; index <= full_length && line < editwinrows; index += COLS) {
@@ -2735,7 +2696,6 @@ int update_line(filestruct *fileptr, size_t index)
 	    extralinesused++;
 	}
     }
-#endif /* !NANO_TINY */
     return extralinesused;
 }
 
@@ -2745,9 +2705,7 @@ int update_line(filestruct *fileptr, size_t index)
 bool need_horizontal_update(size_t pww_save)
 {
     return
-#ifndef NANO_TINY
 	openfile->mark_set ||
-#endif
 	get_page_start(pww_save) !=
 	get_page_start(openfile->placewewant);
 }
@@ -2758,9 +2716,7 @@ bool need_horizontal_update(size_t pww_save)
 bool need_vertical_update(size_t pww_save)
 {
     return
-#ifndef NANO_TINY
 	openfile->mark_set ||
-#endif
 	get_page_start(pww_save) !=
 	get_page_start(openfile->placewewant);
 }
@@ -2828,7 +2784,6 @@ void edit_scroll(scroll_dir direction, ssize_t nlines)
 	    openfile->edittop = openfile->edittop->next;
 	}
 
-#ifndef NANO_TINY
 	/* Don't over-scroll on long lines. */
 	if (ISSET(SOFTWRAP) && direction == UPWARD) {
 	    ssize_t len = strlenpt(openfile->edittop->data) / COLS;
@@ -2836,7 +2791,6 @@ void edit_scroll(scroll_dir direction, ssize_t nlines)
 	    if (len > 0)
 		do_redraw = TRUE;
 	}
-#endif
     }
 
     /* Limit nlines to the number of lines we could scroll. */
@@ -2928,7 +2882,6 @@ void edit_redraw(filestruct *old_current, size_t pww_save)
 		(long)openfile->current->lineno, (long)old_current->lineno, (long)openfile->edittop->lineno);
 #endif
 
-#ifndef NANO_TINY
 	/* If the mark is on, update all the lines between old_current
 	 * and either the old first line or old last line (depending on
 	 * whether we've scrolled up or down) of the edit window. */
@@ -2953,7 +2906,6 @@ void edit_redraw(filestruct *old_current, size_t pww_save)
 			foo->next;
 	    }
 	}
-#endif /* !NANO_TINY */
 
 	/* Make sure the current line is on the screen. */
 	edit_update((ISSET(SMOOTH_SCROLL) && !focusing) ? NONE : CENTER);
@@ -2963,7 +2915,6 @@ void edit_redraw(filestruct *old_current, size_t pww_save)
 	if (do_redraw)
 	    update_line(old_current, 0);
 
-#ifndef NANO_TINY
 	/* If the mark is on, update all the lines between the old first
 	 * line or old last line of the edit window (depending on
 	 * whether we've scrolled up or down) and current. */
@@ -2975,7 +2926,6 @@ void edit_redraw(filestruct *old_current, size_t pww_save)
 			foo->prev : foo->next;
 	    }
 	}
-#endif /* !NANO_TINY */
 
 	return;
     }
@@ -2989,15 +2939,11 @@ void edit_redraw(filestruct *old_current, size_t pww_save)
 	if (do_redraw)
 	    update_line(foo, 0);
 
-#ifndef NANO_TINY
 	if (!openfile->mark_set)
-#endif
 	    break;
 
-#ifndef NANO_TINY
 	foo = (foo->lineno > openfile->current->lineno) ? foo->prev :
 		foo->next;
-#endif
     }
 
     if (do_redraw)
@@ -3074,10 +3020,8 @@ void edit_update(update_type location)
 
     for (; goal > 0 && foo->prev != NULL; goal--) {
 	foo = foo->prev;
-#ifndef NANO_TINY
 	if (ISSET(SOFTWRAP) && foo)
 	    goal -= strlenpt(foo->data) / COLS;
-#endif
     }
     openfile->edittop = foo;
 #ifdef DEBUG

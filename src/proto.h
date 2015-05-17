@@ -27,10 +27,8 @@
 #include "nano.h"
 
 /* All external variables.  See global.c for their descriptions. */
-#ifndef NANO_TINY
 extern sigjmp_buf jump_buf;
 extern bool jump_buf_main;
-#endif
 
 extern bool meta_key;
 extern bool func_key;
@@ -58,11 +56,9 @@ extern filestruct *jusbuffer;
 extern partition *filepart;
 extern openfilestruct *openfile;
 
-#ifndef NANO_TINY
 extern char *matchbrackets;
-#endif
 
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
 extern char *whitespace;
 extern int whitespace_len[2];
 #endif
@@ -89,11 +85,10 @@ extern char *answer;
 
 extern ssize_t tabsize;
 
-#ifndef NANO_TINY
 extern char *backup_dir;
 extern const char *locking_prefix;
 extern const char *locking_suffix;
-#endif
+
 #ifndef DISABLE_OPERATINGDIR
 extern char *operating_dir;
 extern char *full_operating_dir;
@@ -206,32 +201,28 @@ int mbstrncasecmp(const char *s1, const char *s2, size_t n);
 char *nstrcasestr(const char *haystack, const char *needle);
 #endif
 char *mbstrcasestr(const char *haystack, const char *needle);
-#if !defined(NANO_TINY) || !defined(DISABLE_TABCOMP)
+#ifndef DISABLE_TABCOMP
 char *revstrstr(const char *haystack, const char *needle, const char
 	*rev_start);
 #endif
-#ifndef NANO_TINY
 char *revstrcasestr(const char *haystack, const char *needle, const char
 	*rev_start);
 char *mbrevstrcasestr(const char *haystack, const char *needle, const
 	char *rev_start);
-#endif
 size_t mbstrlen(const char *s);
 #ifndef HAVE_STRNLEN
 size_t nstrnlen(const char *s, size_t maxlen);
 #endif
 size_t mbstrnlen(const char *s, size_t maxlen);
-#if !defined(NANO_TINY) || !defined(DISABLE_JUSTIFY)
+#ifndef DISABLE_JUSTIFY
 char *mbstrchr(const char *s, const char *c);
 #endif
-#ifndef NANO_TINY
 char *mbstrpbrk(const char *s, const char *accept);
 char *revstrpbrk(const char *s, const char *accept, const char
 	*rev_start);
 char *mbrevstrpbrk(const char *s, const char *accept, const char
 	*rev_start);
-#endif
-#if !defined(DISABLE_NANORC) && (!defined(NANO_TINY) || !defined(DISABLE_JUSTIFY))
+#if !defined(DISABLE_NANORC) && !defined(DISABLE_JUSTIFY)
 bool has_blank_chars(const char *s);
 bool has_blank_mbchars(const char *s);
 #endif
@@ -253,23 +244,13 @@ void color_update(void);
 void cutbuffer_reset(void);
 bool keeping_cutbuffer(void);
 void cut_line(void);
-#ifndef NANO_TINY
 void cut_marked(void);
 void cut_to_eol(void);
 void cut_to_eof(void);
-#endif
-void do_cut_text(
-#ifndef NANO_TINY
-	bool copy_text, bool cut_till_eof, bool undoing
-#else
-	void
-#endif
-	);
+void do_cut_text(bool copy_text, bool cut_till_eof, bool undoing);
 void do_cut_text_void(void);
-#ifndef NANO_TINY
 void do_copy_text(void);
 void do_cut_till_eof(void);
-#endif
 void do_uncut_text(void);
 
 /* All functions in files.c. */
@@ -292,13 +273,7 @@ filestruct *read_line(char *buf, filestruct *prevnode, bool
 void read_file(FILE *f, int fd, const char *filename, bool undoable, bool checkwritable);
 int open_file(const char *filename, bool newfie, bool quiet, FILE **f);
 char *get_next_filename(const char *name, const char *suffix);
-void do_insertfile(
-#ifndef NANO_TINY
-	bool execute
-#else
-	void
-#endif
-	);
+void do_insertfile(bool execute);
 void do_insertfile_void(void);
 char *get_full_path(const char *origpath);
 char *check_writable_directory(const char *path);
@@ -307,18 +282,14 @@ char *safe_tempfile(FILE **f);
 void init_operating_dir(void);
 bool check_operating_dir(const char *currpath, bool allow_tabcomp);
 #endif
-#ifndef NANO_TINY
 void init_backup_dir(void);
 int delete_lockfile(const char *lockfilename);
 int write_lockfile(const char *lockfilename, const char *origfilename, bool modified);
-#endif
 int copy_file(FILE *inn, FILE *out);
 bool write_file(const char *name, FILE *f_open, bool tmp, append_type
 	append, bool nonamechange);
-#ifndef NANO_TINY
 bool write_marked_file(const char *name, FILE *f_open, bool tmp,
 	append_type append);
-#endif
 bool do_writeout(bool exiting);
 void do_writeout_void(void);
 char *real_dir_from_tilde(const char *buf);
@@ -389,36 +360,18 @@ void do_para_begin_void(void);
 void do_para_end(bool allow_update);
 void do_para_end_void(void);
 #endif
-#ifndef NANO_TINY
 bool do_next_word(bool allow_punct, bool allow_update);
 void do_next_word_void(void);
 bool do_prev_word(bool allow_punct, bool allow_update);
 void do_prev_word_void(void);
-#endif
 void do_home(void);
 void do_end(void);
-void do_up(
-#ifndef NANO_TINY
-	bool scroll_only
-#else
-	void
-#endif
-	);
+void do_up(bool scroll_only);
 void do_up_void(void);
-#ifndef NANO_TINY
 void do_scroll_up(void);
-#endif
-void do_down(
-#ifndef NANO_TINY
-	bool scroll_only
-#else
-	void
-#endif
-	);
+void do_down(bool scroll_only);
 void do_down_void(void);
-#ifndef NANO_TINY
 void do_scroll_down(void);
-#endif
 void do_left(void);
 void do_right(void);
 
@@ -449,11 +402,7 @@ void free_openfilestruct(openfilestruct *src);
 void print_view_warning(void);
 void finish(void);
 void die(const char *msg, ...);
-void die_save_file(const char *die_filename
-#ifndef NANO_TINY
-	, struct stat *die_stat
-#endif
-	);
+void die_save_file(const char *die_filename, struct stat *die_stat);
 void window_init(void);
 #ifndef DISABLE_MOUSE
 void disable_mouse_support(void);
@@ -475,19 +424,15 @@ void signal_init(void);
 RETSIGTYPE handle_hupterm(int signal);
 RETSIGTYPE do_suspend(int signal);
 RETSIGTYPE do_continue(int signal);
-#ifndef NANO_TINY
 RETSIGTYPE handle_sigwinch(int signal);
 void allow_pending_sigwinch(bool allow);
 void do_toggle(int flag);
-#endif
 void do_toggle_void(void);
 void disable_extended_io(void);
 #ifdef USE_SLANG
 void disable_signals(void);
 #endif
-#ifndef NANO_TINY
 void enable_signals(void);
-#endif
 void disable_flow_control(void);
 void enable_flow_control(void);
 void terminal_init(void);
@@ -512,10 +457,8 @@ void do_statusbar_right(void);
 void do_statusbar_backspace(void);
 void do_statusbar_delete(void);
 void do_statusbar_cut_text(void);
-#ifndef NANO_TINY
 bool do_statusbar_next_word(bool allow_punct);
 bool do_statusbar_prev_word(bool allow_punct);
-#endif
 void do_statusbar_verbatim_input(bool *got_enter);
 size_t statusbar_xplustabs(void);
 size_t get_statusbar_page_start(size_t start_col, size_t column);
@@ -588,7 +531,7 @@ bool findnextstr(
 	char *needle, size_t *needle_len);
 void findnextstr_wrap_reset(void);
 void do_search(void);
-#if !defined(NANO_TINY) || !defined(DISABLE_BROWSER)
+#ifndef DISABLE_BROWSER
 void do_research(void);
 #endif
 #ifdef HAVE_REGEX_H
@@ -610,12 +553,10 @@ void do_gotopos(ssize_t pos_line, size_t pos_x, ssize_t pos_y, size_t
 	pos_pww);
 #endif
 void goto_line_posx(ssize_t line, size_t pos_x);
-#ifndef NANO_TINY
 bool find_bracket_match(bool reverse, const char *bracket_set);
 void do_find_bracket(void);
 #ifndef DISABLE_TABCOMP
 char *get_history_completion(filestruct **h, const char *s, size_t len);
-#endif
 #endif
 #ifndef DISABLE_HISTORIES
 bool history_has_changed(void);
@@ -631,25 +572,19 @@ void get_history_newer_void(void);
 #endif
 
 /* All functions in text.c. */
-#ifndef NANO_TINY
 void do_mark(void);
-#endif
 void do_delete(void);
 void do_backspace(void);
 void do_tab(void);
-#ifndef NANO_TINY
 void do_indent(ssize_t cols);
 void do_indent_void(void);
 void do_unindent(void);
 void do_undo(void);
 void do_redo(void);
-#endif
 void do_enter(bool undoing);
 void do_enter_void(void);
-#ifndef NANO_TINY
 RETSIGTYPE cancel_command(int signal);
 bool execute_command(const char *command);
-#endif
 #ifndef DISABLE_WRAPPING
 void wrap_reset(void);
 bool do_wrap(filestruct *line);
@@ -661,10 +596,8 @@ ssize_t break_line(const char *line, ssize_t goal
 #endif
 	);
 #endif
-#if !defined(NANO_TINY) || !defined(DISABLE_JUSTIFY)
-size_t indent_length(const char *line);
-#endif
 #ifndef DISABLE_JUSTIFY
+size_t indent_length(const char *line);
 void justify_format(filestruct *paragraph, size_t skip);
 size_t quote_length(const char *line);
 bool quotes_match(const char *a_line, size_t a_quote, const char
@@ -689,9 +622,7 @@ void do_spell(void);
 void do_linter(void);
 void do_formatter(void);
 #endif
-#ifndef NANO_TINY
 void do_wordlinechar_count(void);
-#endif
 void do_verbatim_input(void);
 
 /* All functions in utils.c. */
@@ -703,7 +634,7 @@ void align(char **str);
 void null_at(char **data, size_t index);
 void unsunder(char *str, size_t true_len);
 void sunder(char *str);
-#if !defined(NANO_TINY) && !defined(DISABLE_NANORC)
+#ifndef DISABLE_NANORC
 #ifndef HAVE_GETLINE
 ssize_t ngetline(char **lineptr, size_t *n, FILE *stream);
 #endif
@@ -732,13 +663,11 @@ size_t actual_x(const char *s, size_t column);
 size_t strnlenpt(const char *s, size_t maxlen);
 size_t strlenpt(const char *s);
 void new_magicline(void);
-#ifndef NANO_TINY
 void remove_magicline(void);
 void mark_order(const filestruct **top, size_t *top_x, const filestruct
 	**bot, size_t *bot_x, bool *right_side_up);
 void add_undo(undo_type current_action);
 void update_undo(undo_type action);
-#endif
 size_t get_totsize(const filestruct *begin, const filestruct *end);
 filestruct *fsfromline(ssize_t lineno);
 #ifdef DEBUG

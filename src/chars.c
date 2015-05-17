@@ -646,7 +646,7 @@ char *mbstrcasestr(const char *haystack, const char *needle)
 	return (char *) strcasestr(haystack, needle);
 }
 
-#if !defined(NANO_TINY) || !defined(DISABLE_TABCOMP)
+#ifndef DISABLE_TABCOMP
 /* This function is equivalent to strstr(), except in that it scans the
  * string in reverse, starting at rev_start. */
 char *revstrstr(const char *haystack, const char *needle, const char
@@ -674,9 +674,8 @@ char *revstrstr(const char *haystack, const char *needle, const char
 
     return NULL;
 }
-#endif /* !NANO_TINY || !DISABLE_TABCOMP */
+#endif /* !DISABLE_TABCOMP */
 
-#ifndef NANO_TINY
 /* This function is equivalent to strcasestr(), except in that it scans
  * the string in reverse, starting at rev_start. */
 char *revstrcasestr(const char *haystack, const char *needle, const char
@@ -747,7 +746,6 @@ char *mbrevstrcasestr(const char *haystack, const char *needle, const
 #endif
 	return revstrcasestr(haystack, needle, rev_start);
 }
-#endif /* !NANO_TINY */
 
 /* This function is equivalent to strlen() for multibyte strings. */
 size_t mbstrlen(const char *s)
@@ -789,7 +787,7 @@ size_t mbstrnlen(const char *s, size_t maxlen)
 	return strnlen(s, maxlen);
 }
 
-#if !defined(NANO_TINY) || !defined(DISABLE_JUSTIFY)
+#ifndef DISABLE_JUSTIFY
 /* This function is equivalent to strchr() for multibyte strings. */
 char *mbstrchr(const char *s, const char *c)
 {
@@ -834,9 +832,8 @@ char *mbstrchr(const char *s, const char *c)
 #endif
 	return (char *) strchr(s, *c);
 }
-#endif /* !NANO_TINY || !DISABLE_JUSTIFY */
+#endif /* !DISABLE_JUSTIFY */
 
-#ifndef NANO_TINY
 /* This function is equivalent to strpbrk() for multibyte strings. */
 char *mbstrpbrk(const char *s, const char *accept)
 {
@@ -903,9 +900,8 @@ char *mbrevstrpbrk(const char *s, const char *accept, const char
 #endif
 	return revstrpbrk(s, accept, rev_start);
 }
-#endif /* !NANO_TINY */
 
-#if !defined(DISABLE_NANORC) && (!defined(NANO_TINY) || !defined(DISABLE_JUSTIFY))
+#if !defined(DISABLE_NANORC) && !defined(DISABLE_JUSTIFY)
 /* Return TRUE if the string s contains one or more blank characters,
  * and FALSE otherwise. */
 bool has_blank_chars(const char *s)
@@ -947,7 +943,7 @@ bool has_blank_mbchars(const char *s)
 #endif
 	return has_blank_chars(s);
 }
-#endif /* !DISABLE_NANORC && (!NANO_TINY || !DISABLE_JUSTIFY) */
+#endif /* !DISABLE_NANORC && !DISABLE_JUSTIFY */
 
 #ifdef ENABLE_UTF8
 /* Return TRUE if wc is valid Unicode, and FALSE otherwise. */
